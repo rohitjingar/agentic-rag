@@ -10,36 +10,38 @@ one didn't, and the table says so.
 > workflow (build a fancy pipeline, eyeball 5 questions, ship) by making the
 > measurement the first-class artifact and every component accountable to a number.
 
-Total spend: **$0** — generation and the LLM-as-judge run on local Ollama,
+Total spend: **\$0** — generation and the LLM-as-judge run on local Ollama,
 embeddings and reranking on local sentence-transformers, CI on the free tier.
-Cost is still tracked, as **shadow-$** (tokens priced at public API rates).
+Cost is still tracked, as **shadow-dollars** (tokens priced at public API rates).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     Q[Query] --> C{Semantic cache?}
-    C -- hit --> A[Answer + sources]
-    C -- miss --> AG[Agentic planner]
+    C -->|hit| A[Answer + sources]
+    C -->|miss| AG[Agentic planner]
+
     subgraph Retrieval
-      AG -->|classify / decompose / HyDE| H[Hybrid: dense + BM25]
+      AG -->|classify / decompose / HyDE| H["Hybrid: dense + BM25"]
       H -->|RRF fusion| RR[Cross-encoder rerank]
-      RR -->|self-critique: confident?| AG
+      RR -->|self-critique| AG
     end
+
     RR --> G[Grounded generation]
     G --> A
-    A -.store.-> C
+    A -.->|store| C
 
-    subgraph Eval[Eval harness -- built first]
-      GS[Golden set: 53 Q, graded labels]
-      RM[recall@k / MRR / nDCG]
-      JG[LLM-as-judge: faithfulness / groundedness / relevance]
-      GATE[CI gates: thresholds.yaml]
+    subgraph EvalHarness["Eval harness (built first)"]
+      GS["Golden set: 53 Q, graded labels"]
+      RM["recall@k / MRR / nDCG"]
+      JG["LLM-as-judge"]
+      GATE["CI gates: thresholds.yaml"]
     end
 
-    subgraph Obs[Observability]
-      OT[OTel spans -> Jaeger]
-      CO[shadow-$ per query]
+    subgraph Observability
+      OT["OTel spans to Jaeger"]
+      CO["shadow cost per query"]
     end
 ```
 
@@ -81,7 +83,7 @@ the retrieval work, measured.
 | close-paraphrase hit rate | 0.44 |
 | **novel false-hit rate** | **0.00** |
 | overall hit rate | 0.63 |
-| saved per hit | full retrieve+generate latency + ~$0.0006 shadow |
+| saved per hit | full retrieve+generate latency + ~\$0.0006 shadow |
 
 ## What earned its place, and what didn't (the honest part)
 
