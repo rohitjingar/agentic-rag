@@ -1,0 +1,517 @@
+{
+  "label": "sparse-bm25",
+  "mode": "sparse",
+  "provisional": true,
+  "timestamp": "2026-07-06T08:39:25+00:00",
+  "corpus_version": "68daa1e88c7a",
+  "chunk_config_hash": "698505d5978c",
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "num_questions": 53,
+  "num_answerable": 46,
+  "num_negative": 7,
+  "metrics": {
+    "overall": {
+      "n": 46,
+      "recall@5": 0.2885,
+      "recall@10": 0.3318,
+      "mrr": 0.2593,
+      "ndcg@10": 0.2374
+    },
+    "by_qtype": {
+      "factoid": {
+        "n": 20,
+        "recall@5": 0.3667,
+        "recall@10": 0.3667,
+        "mrr": 0.27,
+        "ndcg@10": 0.2653
+      },
+      "how-to": {
+        "n": 14,
+        "recall@5": 0.1241,
+        "recall@10": 0.2546,
+        "mrr": 0.127,
+        "ndcg@10": 0.1326
+      },
+      "multi-hop": {
+        "n": 4,
+        "recall@5": 0.425,
+        "recall@10": 0.425,
+        "mrr": 0.625,
+        "ndcg@10": 0.4364
+      },
+      "vocab-mismatch": {
+        "n": 8,
+        "recall@5": 0.3125,
+        "recall@10": 0.3333,
+        "mrr": 0.2812,
+        "ndcg@10": 0.2516
+      }
+    },
+    "latency_ms": {
+      "retrieve_p50": 9.5,
+      "retrieve_p95": 22.7
+    }
+  },
+  "per_question": [
+    {
+      "qid": "q001",
+      "qtype": "factoid",
+      "recall_at_5": 0.5,
+      "recall_at_10": 0.5,
+      "mrr": 0.5,
+      "ndcg_at_10": 0.38685280723454163,
+      "top_score": 0.7058824,
+      "retrieve_ms": 85.29020899732132
+    },
+    {
+      "qid": "q002",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.8076923,
+      "retrieve_ms": 18.54208399890922
+    },
+    {
+      "qid": "q003",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.7916667,
+      "retrieve_ms": 6.870958997751586
+    },
+    {
+      "qid": "q004",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.6666667,
+      "retrieve_ms": 5.011917004594579
+    },
+    {
+      "qid": "q005",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.6969697,
+      "retrieve_ms": 8.06916700094007
+    },
+    {
+      "qid": "q006",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.79591835,
+      "retrieve_ms": 20.977625012164935
+    },
+    {
+      "qid": "q016",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.43067655807339306,
+      "top_score": 0.79591835,
+      "retrieve_ms": 12.286458993912674
+    },
+    {
+      "qid": "q017",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.8503449055347546,
+      "top_score": 0.7777778,
+      "retrieve_ms": 8.091000010608695
+    },
+    {
+      "qid": "q018",
+      "qtype": "multi-hop",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 0.6875,
+      "retrieve_ms": 5.477208003867418
+    },
+    {
+      "qid": "q019",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.7826087,
+      "retrieve_ms": 6.778292008675635
+    },
+    {
+      "qid": "q020",
+      "qtype": "how-to",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.43067655807339306,
+      "top_score": 0.8,
+      "retrieve_ms": 5.490208000992425
+    },
+    {
+      "qid": "q021",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 0.8076923,
+      "retrieve_ms": 14.938916996470653
+    },
+    {
+      "qid": "q022",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.75,
+      "retrieve_ms": 10.43033300084062
+    },
+    {
+      "qid": "q023",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.7777778,
+      "retrieve_ms": 7.6213749998714775
+    },
+    {
+      "qid": "q024",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 0.78723407,
+      "retrieve_ms": 8.213708002585918
+    },
+    {
+      "qid": "q025",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.5,
+      "mrr": 0.1111111111111111,
+      "ndcg_at_10": 0.18457569677956817,
+      "top_score": 0.6969697,
+      "retrieve_ms": 5.444458001875319
+    },
+    {
+      "qid": "q026",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 0.7297297,
+      "retrieve_ms": 3.6185409990139306
+    },
+    {
+      "qid": "q027",
+      "qtype": "factoid",
+      "recall_at_5": 0.3333333333333333,
+      "recall_at_10": 0.3333333333333333,
+      "mrr": 0.2,
+      "ndcg_at_10": 0.18154179253735267,
+      "top_score": 0.77272725,
+      "retrieve_ms": 6.456166011048481
+    },
+    {
+      "qid": "q031",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.6969697,
+      "retrieve_ms": 6.340417006867938
+    },
+    {
+      "qid": "q032",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.71428573,
+      "retrieve_ms": 11.941624994506128
+    },
+    {
+      "qid": "q033",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.6969697,
+      "retrieve_ms": 12.630709010409191
+    },
+    {
+      "qid": "q034",
+      "qtype": "how-to",
+      "recall_at_5": 0.3333333333333333,
+      "recall_at_10": 0.3333333333333333,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.20210734650054757,
+      "top_score": 0.71428573,
+      "retrieve_ms": 3.6176669964333996
+    },
+    {
+      "qid": "q035",
+      "qtype": "multi-hop",
+      "recall_at_5": 0.5,
+      "recall_at_10": 0.5,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.5316519652587917,
+      "top_score": 0.7916667,
+      "retrieve_ms": 14.64704200043343
+    },
+    {
+      "qid": "q036",
+      "qtype": "how-to",
+      "recall_at_5": 0.25,
+      "recall_at_10": 0.5,
+      "mrr": 0.5,
+      "ndcg_at_10": 0.3853585682515056,
+      "top_score": 0.79591835,
+      "retrieve_ms": 13.742750001256354
+    },
+    {
+      "qid": "q037",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.7368421,
+      "retrieve_ms": 9.508709001238458
+    },
+    {
+      "qid": "q038",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.75,
+      "retrieve_ms": 8.043000008910894
+    },
+    {
+      "qid": "q039",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.75609756,
+      "retrieve_ms": 14.511291999951936
+    },
+    {
+      "qid": "q040",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.84615386,
+      "retrieve_ms": 21.982958001899533
+    },
+    {
+      "qid": "q041",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.84615386,
+      "retrieve_ms": 13.049000001046807
+    },
+    {
+      "qid": "q042",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.84615386,
+      "retrieve_ms": 13.46795899735298
+    },
+    {
+      "qid": "q043",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.8214286,
+      "retrieve_ms": 9.953582994057797
+    },
+    {
+      "qid": "q044",
+      "qtype": "multi-hop",
+      "recall_at_5": 0.2,
+      "recall_at_10": 0.2,
+      "mrr": 0.5,
+      "ndcg_at_10": 0.21398626473452756,
+      "top_score": 0.75,
+      "retrieve_ms": 17.415416004951112
+    },
+    {
+      "qid": "q060",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.6387878864795979,
+      "top_score": 0.7297297,
+      "retrieve_ms": 1.8602500058477744
+    },
+    {
+      "qid": "q061",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.77272725,
+      "retrieve_ms": 2.8810410003643483
+    },
+    {
+      "qid": "q062",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.5,
+      "recall_at_10": 0.6666666666666666,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.7316362001126299,
+      "top_score": 0.8113208,
+      "retrieve_ms": 6.778625000151806
+    },
+    {
+      "qid": "q063",
+      "qtype": "factoid",
+      "recall_at_5": 0.5,
+      "recall_at_10": 0.5,
+      "mrr": 0.2,
+      "ndcg_at_10": 0.23719771276929622,
+      "top_score": 0.8,
+      "retrieve_ms": 22.7115839952603
+    },
+    {
+      "qid": "q064",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.85294116,
+      "retrieve_ms": 26.167874995735474
+    },
+    {
+      "qid": "q065",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.7826087,
+      "retrieve_ms": 11.548874987056479
+    },
+    {
+      "qid": "q066",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg_at_10": 0.3562071871080222,
+      "top_score": 0.7058824,
+      "retrieve_ms": 9.470583012443967
+    },
+    {
+      "qid": "q067",
+      "qtype": "how-to",
+      "recall_at_5": 0.15384615384615385,
+      "recall_at_10": 0.23076923076923078,
+      "mrr": 0.5,
+      "ndcg_at_10": 0.2973694836145356,
+      "top_score": 0.6969697,
+      "retrieve_ms": 8.9218330103904
+    },
+    {
+      "qid": "q068",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.6666667,
+      "retrieve_ms": 10.653958001057617
+    },
+    {
+      "qid": "q069",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.8076923,
+      "retrieve_ms": 15.334458992583677
+    },
+    {
+      "qid": "q070",
+      "qtype": "multi-hop",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.7368421,
+      "retrieve_ms": 18.781999999191612
+    },
+    {
+      "qid": "q071",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 0.84615386,
+      "retrieve_ms": 10.702333995141089
+    },
+    {
+      "qid": "q072",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.43067655807339306,
+      "top_score": 0.7368421,
+      "retrieve_ms": 9.453874998143874
+    },
+    {
+      "qid": "q073",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.43067655807339306,
+      "top_score": 0.7058824,
+      "retrieve_ms": 9.524207998765633
+    }
+  ]
+}
