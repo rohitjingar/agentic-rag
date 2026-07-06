@@ -1,0 +1,556 @@
+{
+  "label": "dense-baseline-gen",
+  "suite": "generation",
+  "provisional": true,
+  "timestamp": "2026-07-06T08:34:27+00:00",
+  "generation_model": "llama3.1:8b",
+  "judge_model": "qwen2.5:7b-instruct",
+  "judge_prompt_version": "v1",
+  "golden_hash": "493229b448d8",
+  "chunk_config_hash": "698505d5978c",
+  "metrics": {
+    "answerable": {
+      "n": 46,
+      "faithfulness": 4.652,
+      "groundedness": 4.587,
+      "relevance": 4.13
+    },
+    "negatives": {
+      "n": 7,
+      "refusal_accuracy": 1.0,
+      "faithfulness": 4.714
+    }
+  },
+  "per_question": [
+    {
+      "qid": "q001",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 3,
+      "relevance": 1,
+      "answer": "[Q1] The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q002",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S1] \n\nThe provided excerpt from the pgvector/README documentation shows an example of creating a HNSW index with specific parameters. The example is:\n\n```sql\nCREATE INDEX ON items USING hnsw (embedding vector_l2_ops) WITH (m = 16, ef_construction = 64);\n```\n\nIn this example, `m` and `ef_construction` are the HNSW build parameters used.\n\n- `m`: specifies the max number of connections per layer. The default value is 16.\n- `ef_construction`: specifies the size of the dynamic candidate list for constructing the graph. The default value is 64.\n\nThese parameters control how the index is built and can affect the performance and recall of the index."
+    },
+    {
+      "qid": "q003",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To trade a slower index build for better recall when creating an HNSW index in pgvector, you can increase the value of `ef_construction` [S1]. A higher value of `ef_construction` provides better recall at the cost of index build time / insert speed. \n\n```sql\nCREATE INDEX ON items USING hnsw (embedding vector_l2_ops) WITH (m = 16, ef_construction = 128);\n```\n\nYou can also increase the number of parallel workers to speed up index creation [S4]."
+    },
+    {
+      "qid": "q004",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q005",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q006",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S3] provides the solution:\n```sql\nBEGIN;\nSET LOCAL enable_indexscan = off; -- use exact search\nSELECT ...\nCOMMIT;\n```\nThis code snippet sets `enable_indexscan` to `off` within a transaction, forcing pgvector to use exact nearest-neighbor search for the query."
+    },
+    {
+      "qid": "q016",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[B-tree](S2) is created by default when you run `CREATE INDEX` without specifying an index type (S1)[S3]."
+    },
+    {
+      "qid": "q017",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To reclaim the excess disk space occupied by your table, you will need to use `VACUUM FULL`, or alternatively [`CLUSTER`](sql-cluster.html \"CLUSTER\") or one of the table-rewriting variants of [`ALTER TABLE`](sql-altertable.html \"ALTER TABLE\"). These commands rewrite an entire new copy of the table and build new indexes for it. [S1]\n\nAlternatively, if your table's contents are deleted on a periodic basis, consider using `TRUNCATE` instead of `DELETE` followed by `VACUUM`. However, this will violate strict MVCC semantics. [S1]"
+    },
+    {
+      "qid": "q018",
+      "qtype": "multi-hop",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The practical difference between standard `VACUUM` and `VACUUM FULL` is that `VACUUM FULL` actively compacts tables by writing a complete new version of the table file with no dead space, whereas standard `VACUUM` only removes dead row versions in tables and indexes and marks the space available for future reuse [S3].\n\nYou should avoid using `VACUUM FULL` unless you have deleted or updated most of the rows in a table and would like the table to physically shrink to occupy less disk space and allow faster table scans [S4]. This is because `VACUUM FULL` can take a long time, requires extra disk space for the new copy of the table, and should be used sparingly due to its performance impact."
+    },
+    {
+      "qid": "q019",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 3,
+      "groundedness": 2,
+      "relevance": 3,
+      "answer": "The indexed documentation does not contain the answer to this question.\n\nHowever, [S2] provides an explanation for why PostgreSQL needs to reclaim disk space occupied by outdated or deleted rows. It states that \"an `UPDATE` or `DELETE` of a row does not immediately remove the old version of the row\" because it is necessary to gain the benefits of multiversion concurrency control (MVCC)."
+    },
+    {
+      "qid": "q020",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To create an index that only covers a subset of rows in a PostgreSQL table, you can use the `WHERE` clause with the `CREATE INDEX` command. This will create a partial index.\n\nExample:\n```sql\nCREATE INDEX myindex ON mytable (column1, column2) WHERE condition;\n```\nReplace `myindex`, `mytable`, `column1`, `column2`, and `condition` with your actual table and column names, as well as the condition that defines the subset of rows you want to index.\n\nThis will create an index on the specified columns for only those rows where the condition is true. [S3]"
+    },
+    {
+      "qid": "q021",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 3,
+      "answer": "[The indexed documentation does not contain the answer to this question.]"
+    },
+    {
+      "qid": "q022",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To keep PostgreSQL full-text search fast on a large table of documents, you can use the following methods:\n\n1. Use an index: Create a GIN (Generalized Inverted Index) index on the `tsvector` column to speed up searches.\n2. Reindex and vacuum regularly: Run `REINDEX INDEX CONCURRENTLY` and `VACUUM` commands periodically to maintain the index's efficiency.\n\nThis is based on [S1] and [S2]."
+    },
+    {
+      "qid": "q023",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 4,
+      "relevance": 5,
+      "answer": "To see the plan that was chosen by the PostgreSQL planner, you can use the EXPLAIN command followed by ANALYZE. This will show you the actual execution plan used by the query, as well as an estimate of the cost of each step in the plan.\n\n```\nEXPLAIN (ANALYZE, VERBOSE) SELECT * FROM tenk1 WHERE unique1 < 100 AND unique2 > 9000;\n```\n\nThis will give you detailed information about the plan that was chosen, including the estimated costs and actual execution times for each step. You can use this information to understand why the planner chose a sequential scan instead of using your index.\n\nNote: The EXPLAIN command without ANALYZE will only show the planned query tree, not the actual execution plan."
+    },
+    {
+      "qid": "q024",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "Read Committed [S1]."
+    },
+    {
+      "qid": "q025",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To speed up a bulk data load of many rows into PostgreSQL, you can use the following methods:\n\n1. Disable autocommit and commit all inserts in one transaction [S3].\n2. Use `COPY` to load all rows in one command instead of using a series of `INSERT` commands [S3].\n3. Temporarily increase the `maintenance_work_mem` configuration variable when loading large amounts of data [S2].\n4. Temporarily increase the `max_wal_size` configuration variable to reduce the number of checkpoints required during bulk data loads [S2].\n\nThese methods can help improve performance by reducing the overhead of individual transactions and minimizing the number of checkpoints required."
+    },
+    {
+      "qid": "q026",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The primary purpose of the write-ahead log (WAL) in PostgreSQL is for crash-safety purposes. It records every change made to the database's data files, allowing the database to be restored to consistency by \"replaying\" the log entries made since the last checkpoint in case of a system crash [S2]."
+    },
+    {
+      "qid": "q027",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q031",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To limit which HTTP origins can call your FastAPI app from a browser, you need to specify a list of allowed origins in your `CORSMiddleware` configuration. \n\nYou can do this by creating a list of strings containing the allowed origins and passing it to the `CORSMiddleware`. For example:\n\n```python\nfrom fastapi import FastAPI\nfrom fastapi.middleware.cors import CORSMiddleware\n\napp = FastAPI()\n\norigins = [\n    \"http://localhost:8080\",\n]\n\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=origins,\n)\n```\n\nThis will only allow requests from `http://localhost:8080` to access your app. \n\nYou can also use wildcards (`\"*\"`) to specify that all origins are allowed, but this has some limitations (see [S1])."
+    },
+    {
+      "qid": "q032",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 3,
+      "answer": "[The indexed documentation does not contain the answer to this question.]"
+    },
+    {
+      "qid": "q033",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 1,
+      "groundedness": 1,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q034",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To write tests for a FastAPI application, you can use the `TestClient` provided by Starlette (and imported in FastAPI as `fastapi.testclient`). \n\nFirst, install `httpx` and create a virtual environment. Then, import `TestClient`, create an instance of it with your FastAPI application, and write test functions that start with `test_`. Use the `TestClient` object to send requests to your API and make assertions about the responses.\n\nYou can use pytest directly without complications because the testing functions are normal `def`, not `async def`, and the calls to the client are also normal calls, not using `await`.\n\nExample code is provided in the tutorial: `{* ../../docs_src/app_testing/tutorial001_py310.py hl[2,12,15:18] *}`\n\n[S1][S4]"
+    },
+    {
+      "qid": "q035",
+      "qtype": "multi-hop",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To replace a dependency with a fake while testing a FastAPI endpoint that also uses an async database session, you should use the `app.dependency_overrides` attribute. This is explained in [S2] (from fastapi/advanced/testing-dependencies).\n\nYou can override the original dependency by putting it as a key in the `dependency_overrides` dictionary and assigning your fake dependency as its value.\n\nFor example:\n```python\napp.dependency_overrides = {\n    original_dependency: fake_dependency,\n}\n```\nThis way, when the FastAPI application is running, it will use the fake dependency instead of the original one."
+    },
+    {
+      "qid": "q036",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To return a specific non-200 HTTP status code from a FastAPI path operation, you can use the `status_code` parameter when defining your path operation decorator. For example:\n\n```python\nfrom fastapi import FastAPI, status\n\napp = FastAPI()\n\n@app.get(\"/items/\", status_code=status.HTTP_418_IM_A_TEAPOT)\ndef read_items():\n    return [{\"name\": \"Plumbus\"}, {\"name\": \"Portal Gun\"}]\n```\n\nYou can use the shortcut constants in `status` or pass directly the `int` code. [S3]\n\nAlternatively, you can also declare the HTTP status code used for the response with the parameter `status_code` in any of the path operations:\n\n```python\n@app.get(\"/items/\", status_code=418)\ndef read_items():\n    return [{\"name\": \"Plumbus\"}, {\"name\": \"Portal Gun\"}]\n```\n\nThis will return a 418 status code and document it as such in the OpenAPI schema. [S4]"
+    },
+    {
+      "qid": "q037",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "You can use Pydantic's `Settings` management to handle settings coming from environment variables. First, install the `pydantic-settings` package using pip:\n\n```console\n$ pip install pydantic-settings\n```\n\nThen, you can declare your settings with types and validation in code, and they will be read from environment variables.\n\nFor example:\n\n```python\nfrom pydantic import Settings\n\nclass MySettings(Settings):\n    openapi_url: str = \"/openapi.json\"\n\nsettings = MySettings()\n```\n\nThis way, the `openapi_url` setting is read from an environment variable named `OPENAPI_URL`, and it's a string. If you set the environment variable to an empty string, OpenAPI will be disabled.\n\nYou can also use other types and validation in your settings, like integers or floats.\n\nNote that any value read from an environment variable will be a `str` in Python, so you need to do any conversion to a different type or validation in code."
+    },
+    {
+      "qid": "q038",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S2] defines two standard transport mechanisms for client-server communication:\n\n1. **stdio** (communication over standard in and standard out)\n2. **HTTP with Server-Sent Events (SSE)**"
+    },
+    {
+      "qid": "q039",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 3,
+      "groundedness": 2,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question.\n\nHowever, based on the provided excerpts, we can infer that MCP uses JSON-RPC to encode messages [S1][S2][S4]. Specifically, it is mentioned in [S3] that \"the wire format (one newline-delimited JSON-RPC message per line over a reliable bidirectional byte stream) works unchanged\" for various transport mechanisms."
+    },
+    {
+      "qid": "q040",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 3,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q041",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 3,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q042",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The server sends a notification with the method `notifications/tools/list_changed` [S1][S2][S3][S5]. \n\nExample JSON request:\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"notifications/tools/list_changed\"\n}\n```\nThis notification is only sent by servers that declared `\"listChanged\": true` in their tools capability during initialization [S1]."
+    },
+    {
+      "qid": "q043",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The first request an MCP client sends when establishing a connection is an `initialize` request. This request is used to initiate the initialization phase, which **MUST** be the first interaction between client and server [S2][S3][S4]. The `initialize` request contains:\n\n- Protocol version supported\n- Client capabilities\n- Client implementation information\n\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"<version>\",\n    \"capabilities\": {...},\n    \"clientInfo\": {...}\n  }\n}\n```\n\nThis request is used to establish protocol version compatibility, exchange and negotiate capabilities, and share implementation details between the client and server."
+    },
+    {
+      "qid": "q044",
+      "qtype": "multi-hop",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[The indexed documentation does not contain the answer to this question.]"
+    },
+    {
+      "qid": "q048",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q049",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 3,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q050",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q051",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q052",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q053",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 3,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q054",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 3,
+      "groundedness": 1,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q060",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 4,
+      "relevance": 5,
+      "answer": "You should choose HNSW over IVFFlat if you need faster query performance (in terms of speed-recall tradeoff) and are willing to sacrifice some build time and memory usage. [S1]"
+    },
+    {
+      "qid": "q061",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q062",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To build an index on a big PostgreSQL table without locking out writes for the whole build, you can use the `CONCURRENTLY` option of `CREATE INDEX`. This method performs two scans of the table and waits for all existing transactions that could potentially modify or use the index to terminate. [S1]"
+    },
+    {
+      "qid": "q063",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 2,
+      "relevance": 5,
+      "answer": "GIN [S4]"
+    },
+    {
+      "qid": "q064",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "You can use `async def` for your utility function and then `await` it when you call it in your code, as stated in [S1]. This way, the function will be called on a threadpool worker, avoiding blocking the main loop. \n\nAlternatively, if the third-party client is blocking, you could declare the *path operation function* with regular `def` instead of `async def`, so FastAPI runs it on a threadpool worker, as mentioned in [S2]."
+    },
+    {
+      "qid": "q065",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S3] states that by declaring a Python type on a FastAPI path parameter, you get data validation, including automatic and clear errors when the data is invalid, as well as validation for deeply nested JSON objects. [S5] also mentions this benefit, noting that the error clearly states exactly where the validation didn't pass, which is helpful while developing and debugging code."
+    },
+    {
+      "qid": "q066",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 3,
+      "relevance": 5,
+      "answer": "To declare the shape of a JSON request body that a FastAPI endpoint accepts, you can use Pydantic models. \n\nFor example, let's say we have an `Item` model:\n\n```python\nfrom pydantic import BaseModel\n\nclass Item(BaseModel):\n    name: str\n    description: str\n    price: float\n    tax: float\n```\n\nThen, in your FastAPI endpoint, you can declare the shape of the JSON request body like this:\n\n```python\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass Item(BaseModel):\n    name: str\n    description: str\n    price: float\n    tax: float\n\n@app.post(\"/items/\")\nasync def create_item(item: Item):\n    return item\n```\n\nIn this example, the `item` parameter in the `create_item` function is of type `Item`, which means that FastAPI will expect a JSON request body with the shape defined by the `Item` model. \n\nYou can also use the `Body` parameter to specify the shape of the JSON request body:\n\n```python\nfrom fastapi import FastAPI, Body\n\napp = FastAPI()\n\nclass Item(BaseModel):\n    name: str\n    description: str\n    price: float\n    tax: float\n\n@app.post(\"/items/\")\nasync def create_item(item: Item = Body(...)):\n    return item\n```\n\nIn this case, the `item` parameter is of type `Item`, and the `Body` parameter specifies that it should be a JSON request body with the shape defined by the `Item` model. \n\nNote that you can also use the `embed=True` parameter to specify that the JSON request body should have an inner field with the shape defined by the `Item` model:\n\n```python\nfrom fastapi import FastAPI, Body\n\napp = FastAPI()\n\nclass Item(BaseModel):\n    name: str\n    description: str\n    price: float\n    tax: float\n\n@app.post(\"/items/\")\nasync def create_item(item: Annotated[Item, Body(embed=True)]):\n    return item\n```\n\nThis will expect a JSON request body with the shape:\n\n```json\n{\n    \"item\": {\n        \"name\": \"Foo\",\n        \"description\": \"The pretender\",\n        \"price\": 42.0,\n        \"tax\": 3.2\n    }\n}\n```"
+    },
+    {
+      "qid": "q067",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To control which fields FastAPI includes in the response, you can use the `response_model_include` and `response_model_exclude` parameters. These take a set of str with the name of the attributes to include (omitting the rest) or to exclude (including the rest).\n\nFor example: `{\"name\", \"description\"}` creates a set with those two values.\n\nIt is equivalent to `set([\"name\", \"description\"])`.\n\nYou can use this syntax in your path operation decorator, like so:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\nclass Item(BaseModel):\n    name: str\n    description: str\n    price: float\n\n@app.get(\"/items/\")\nasync def read_items():\n    items = [{\"name\": \"Foo\", \"description\": \"The foo item\", \"price\": 10.5}]\n    return items\n```\n\nIn this example, the `response_model_include` parameter is not used explicitly, but you can use it to include only certain fields in the response.\n\nYou can also use `response_model_exclude` to exclude certain fields from the response.\n\nNote that using these parameters will still generate a JSON Schema for the complete model, even if you omit some attributes. It's recommended to use multiple classes instead of these parameters for better documentation and validation."
+    },
+    {
+      "qid": "q068",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "OAuth2 [S3] and specifically the \"password flow\" [S4]."
+    },
+    {
+      "qid": "q069",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 3,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q070",
+      "qtype": "multi-hop",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "Prompts [S1][S2][S3][S4]."
+    },
+    {
+      "qid": "q071",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To retrieve available prompts, clients send a `prompts/list` request. This operation supports [pagination](/specification/2025-06-18/server/utilities/pagination).\n\n**Request:**\n\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"prompts/list\",\n  \"params\": {\n    // optional parameters for pagination, etc.\n  }\n}\n```\n\n[The indexed documentation does not contain the answer to this question.]"
+    },
+    {
+      "qid": "q072",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[According to S1] Capability negotiation and protocol version agreement.\n\nThis is stated in the Initialization section of [S1]: \n\"The initialization phase **MUST** be the first interaction between client and server.\nDuring this phase, the client and server:\n\n- Establish protocol version compatibility\n- Exchange and negotiate capabilities\n- Share implementation details\""
+    },
+    {
+      "qid": "q073",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S3] states that \"Briefly, WAL's central concept is that changes to data files must be written only after those changes have been logged, that is, after WAL records describing the changes have been flushed to permanent storage.\" [S2] also mentions that replaying the WAL for a period of time will fix any internal inconsistencies. Therefore, PostgreSQL can confirm a commit without flushing every changed data page to disk because it has already written the necessary WAL records to permanent storage, which can be used to recover and redo any changes in case of a crash."
+    }
+  ]
+}
