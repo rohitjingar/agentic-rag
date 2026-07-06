@@ -59,10 +59,10 @@ def create_app(
             pool,
             app.state.embedder,
             chunk_config_from(settings).config_hash,
+            reranker_backend=settings.reranker_backend,
+            reranker_model=settings.reranker_model,
         )
-        app.state.rag = RAGService(
-            retriever=retriever, llm=app.state.llm, top_k=settings.top_k
-        )
+        app.state.rag = RAGService(retriever=retriever, llm=app.state.llm, top_k=settings.top_k)
         try:
             yield
         finally:

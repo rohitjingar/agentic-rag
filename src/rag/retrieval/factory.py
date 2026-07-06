@@ -17,10 +17,13 @@ from rag.ingest.embedder import Embedder
 from rag.models import RetrievedChunk
 from rag.retrieval.dense import dense_search
 from rag.retrieval.fusion import DEFAULT_RRF_K, reciprocal_rank_fusion
+from rag.retrieval.rerank import Reranker, RerankRetriever, build_reranker
 from rag.retrieval.sparse import sparse_search
 
 # candidates each retriever contributes to fusion before taking top-k
 FANOUT = 50
+# candidates the cross-encoder reranks down to top-k
+RERANK_POOL = 50
 
 
 class Retriever(Protocol):
@@ -74,6 +77,9 @@ def build_retriever(
     pool: AsyncConnectionPool,
     embedder: Embedder,
     chunk_config_hash: str,
+    reranker: Reranker | None = None,
+    reranker_backend: str = "cross-encoder",
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
 ) -> Retriever:
     if mode == "dense":
         return DenseRetriever(pool, embedder, chunk_config_hash)
@@ -81,4 +87,12 @@ def build_retriever(
         return SparseRetriever(pool, chunk_config_hash)
     if mode == "hybrid":
         return HybridRetriever(pool, embedder, chunk_config_hash)
+    # rerank a base retriever's wide pool. rerank == hybrid+rerank (headline
+    # pipeline); rerank-dense isolates whether hybrid's recall gain survives
+    # reranking or dense+rerank would have done as well.
+    if mode in ("rerank", "rerank-dense"):
+        base_mode = "dense" if mode == "rerank-dense" else "hybrid"
+        base = build_retriever(base_mode, pool, embedder, chunk_config_hash)
+        reranker = reranker or build_reranker(reranker_backend, reranker_model)
+        return RerankRetriever(base, reranker, pool_size=RERANK_POOL)
     raise ValueError(f"unknown retrieval mode: {mode!r}")

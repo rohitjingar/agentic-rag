@@ -63,7 +63,12 @@ async def _query(question: str, top_k: int | None) -> None:
         settings.embedding_backend, settings.embedding_model, settings.embedding_dim
     )
     retriever = build_retriever(
-        settings.retrieval_mode, pool, embedder, chunk_config_from(settings).config_hash
+        settings.retrieval_mode,
+        pool,
+        embedder,
+        chunk_config_from(settings).config_hash,
+        reranker_backend=settings.reranker_backend,
+        reranker_model=settings.reranker_model,
     )
     service = RAGService(retriever, llm, settings.top_k)
     try:

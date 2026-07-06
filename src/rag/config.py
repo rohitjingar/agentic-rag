@@ -24,7 +24,10 @@ class Settings(BaseSettings):
     chunk_size_tokens: int = 400
     chunk_overlap_tokens: int = 60
     top_k: int = 5
-    retrieval_mode: str = "dense"  # dense | sparse | hybrid (Phase 4+)
+    # dense | sparse | hybrid (P4) | rerank | rerank-dense (P5)
+    retrieval_mode: str = "dense"
+    reranker_backend: str = "cross-encoder"  # or "fake" (tests/CI)
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     llm_num_ctx: int = 8192
 
     # CI has no Ollama: with require_llm=false the health probe skips the LLM
