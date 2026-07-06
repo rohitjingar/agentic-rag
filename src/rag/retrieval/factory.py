@@ -80,6 +80,7 @@ def build_retriever(
     reranker: Reranker | None = None,
     reranker_backend: str = "cross-encoder",
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    llm=None,
 ) -> Retriever:
     if mode == "dense":
         return DenseRetriever(pool, embedder, chunk_config_hash)
@@ -95,4 +96,11 @@ def build_retriever(
         base = build_retriever(base_mode, pool, embedder, chunk_config_hash)
         reranker = reranker or build_reranker(reranker_backend, reranker_model)
         return RerankRetriever(base, reranker, pool_size=RERANK_POOL)
+    if mode == "agentic":
+        if llm is None:
+            raise ValueError("agentic mode requires an llm")
+        from rag.agent.loop import AgenticRetriever
+
+        reranker = reranker or build_reranker(reranker_backend, reranker_model)
+        return AgenticRetriever(pool, embedder, chunk_config_hash, reranker, llm)
     raise ValueError(f"unknown retrieval mode: {mode!r}")

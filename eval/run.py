@@ -28,6 +28,7 @@ from eval.retrievers import build_retriever
 from eval.schema import load_golden
 from rag.api.app import chunk_config_from
 from rag.config import get_settings
+from rag.generation.client import OllamaClient
 from rag.ingest.embedder import build_embedder
 from rag.ingest.pipeline import corpus_version
 
@@ -47,6 +48,9 @@ class QuestionResult:
     ndcg_at_10: float
     top_score: float
     retrieve_ms: float  # end-to-end: embed query + retrieve (+ rerank, later phases)
+    tokens: int = 0  # LLM tokens spent on agentic transforms (0 for non-agentic)
+    iterations: int = 1
+    classification: str = ""
 
 
 async def _eval_question(retriever, m: MaterializedItem) -> QuestionResult:
@@ -57,6 +61,7 @@ async def _eval_question(retriever, m: MaterializedItem) -> QuestionResult:
 
     ids = [c.id for c in chunks]
     primary = m.primary_chunk_ids
+    run = getattr(retriever, "last_run", None)  # populated by AgenticRetriever
     return QuestionResult(
         qid=item.qid,
         qtype=item.qtype,
@@ -66,6 +71,9 @@ async def _eval_question(retriever, m: MaterializedItem) -> QuestionResult:
         ndcg_at_10=ndcg_at_k(ids, m.grade_by_chunk, 10),
         top_score=chunks[0].score if chunks else 0.0,
         retrieve_ms=retrieve_ms,
+        tokens=run.tokens if run else 0,
+        iterations=run.iterations if run else 1,
+        classification=run.classification if run else "",
     )
 
 
@@ -93,12 +101,24 @@ def _aggregate(results: list[QuestionResult]) -> dict:
         }
 
     retrieve_ms = [r.retrieve_ms for r in results]
+    tokens = [r.tokens for r in answerable]
+    mean_tokens = round(sum(tokens) / len(tokens), 1) if tokens else 0.0
     return {
         "overall": block(answerable),
         "by_qtype": {t: block(rs) for t, rs in sorted(by_type.items())},
         "latency_ms": {
             "retrieve_p50": round(_percentile(retrieve_ms, 50), 1),
             "retrieve_p95": round(_percentile(retrieve_ms, 95), 1),
+        },
+        "cost": {
+            "mean_tokens_per_query": mean_tokens,
+            # shadow-$: local run costs $0, but price tokens at a public small-
+            # model blended rate (~$0.60 / 1M tokens) to keep the cost story
+            # concrete. per 1k queries = tokens/q * 1000 * 0.60/1e6.
+            "shadow_usd_per_1k_queries": round(mean_tokens * 1000 * 0.60 / 1_000_000, 4),
+            "mean_iterations": round(sum(r.iterations for r in answerable) / len(answerable), 2)
+            if answerable
+            else 0.0,
         },
     }
 
@@ -123,10 +143,17 @@ async def run_eval(mode: str, label: str, provisional: bool) -> dict:
     )
     pool = AsyncConnectionPool(settings.database_url, min_size=1, max_size=4, open=False)
     await pool.open()
+    llm = None
+    if mode == "agentic":
+        llm = OllamaClient(
+            settings.ollama_base_url, settings.generation_model, num_ctx=settings.llm_num_ctx
+        )
     try:
-        retriever = build_retriever(mode, pool, embedder, cfg_hash)
+        retriever = build_retriever(mode, pool, embedder, cfg_hash, llm=llm)
         results = [await _eval_question(retriever, m) for m in materialized if m.item.answerable]
     finally:
+        if llm is not None:
+            await llm.aclose()
         await pool.close()
 
     agg = _aggregate(results)
@@ -161,19 +188,21 @@ def _append_results_table(report: dict) -> None:
     header = (
         "# Retrieval eval results\n\n"
         "Appended by `eval/run.py`. Each row = one retriever config on the frozen\n"
-        "golden set. Deltas are read down the table (baseline is the anchor).\n\n"
+        "golden set. Deltas are read down the table (baseline is the anchor).\n"
+        "tokens/q = LLM tokens spent on agentic transforms (0 for non-agentic).\n\n"
         "| label | mode | recall@5 | recall@10 | MRR | nDCG@10 "
-        "| retrieve p50/p95 ms | n | provisional |\n"
-        "|---|---|---|---|---|---|---|---|---|\n"
+        "| retrieve p50/p95 ms | tokens/q | n | provisional |\n"
+        "|---|---|---|---|---|---|---|---|---|---|\n"
     )
     if not table.exists():
         table.write_text(header)
     m = report["metrics"]["overall"]
     lat = report["metrics"]["latency_ms"]
+    tokens = report["metrics"].get("cost", {}).get("mean_tokens_per_query", 0.0)
     row = (
         f"| {report['label']} | {report['mode']} | {m['recall@5']} | {m['recall@10']} "
         f"| {m['mrr']} | {m['ndcg@10']} | {lat['retrieve_p50']}/{lat['retrieve_p95']} "
-        f"| {m['n']} | {'yes' if report['provisional'] else 'no'} |\n"
+        f"| {tokens} | {m['n']} | {'yes' if report['provisional'] else 'no'} |\n"
     )
     with table.open("a") as fh:
         fh.write(row)
@@ -200,6 +229,13 @@ def main() -> None:
         f"  retrieve p50/p95 = {report['metrics']['latency_ms']['retrieve_p50']}"
         f"/{report['metrics']['latency_ms']['retrieve_p95']} ms"
     )
+    cost = report["metrics"].get("cost", {})
+    if cost.get("mean_tokens_per_query"):
+        print(
+            f"  cost: {cost['mean_tokens_per_query']} tokens/query, "
+            f"{cost['mean_iterations']} iterations, "
+            f"shadow ${cost['shadow_usd_per_1k_queries']}/1k queries"
+        )
     print(f"  wrote {out.relative_to(EVAL_DIR.parent)}")
     if report["provisional"]:
         print("  NOTE: provisional — pending golden-set sign-off (rerun with --final)")
