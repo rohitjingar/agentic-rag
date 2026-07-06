@@ -43,3 +43,6 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "judge: hits the real local Ollama judge; auto-skips when Ollama is absent (e.g. CI)",
+]

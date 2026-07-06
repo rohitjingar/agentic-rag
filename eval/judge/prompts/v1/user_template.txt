@@ -1,0 +1,11 @@
+QUESTION:
+{question}
+
+CONTEXT (numbered excerpts the answer was allowed to use):
+{context}
+
+ANSWER (to be scored):
+{answer}
+
+Score faithfulness, groundedness, and relevance from 1 to 5 with a one-sentence
+reason each, as JSON.
