@@ -116,8 +116,11 @@ Full per-phase analysis with per-question breakdowns: [`eval/results/ANALYSIS.md
   retrieval suite in CI against absolute floors in
   [`eval/thresholds.yaml`](eval/thresholds.yaml); the generation suite is
   verified against its committed, hash-stamped result (stale or regressed →
-  merge blocked). Demonstration: a PR that removes the bge query-instruction
-  prefix drops recall below the floor and is blocked; the clean pipeline passes.
+  merge blocked). **Live demonstration** ([PR #1](https://github.com/rohitjingar/agentic-rag/pull/1)):
+  a PR that drops the bge query-instruction prefix passes `lint` and `test` but
+  the `retrieval-gate` catches it — `GATE FAIL: recall@10 0.489 < floor 0.5` —
+  and blocks the merge. Unit tests can't catch a quality regression; the golden
+  set can.
 
 ## Quickstart
 
