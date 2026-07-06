@@ -1,3 +1,18 @@
+# private project docs (career context, spec, decision log stay local)
 docs/CONTEXT.md
 specs/002-agentic-rag-spec.md
 docs/DECISIONS.md
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+dist/
+
+# secrets & local env
+.env
+
+# macOS
+.DS_Store
