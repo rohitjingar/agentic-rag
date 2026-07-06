@@ -1,10 +1,11 @@
 # Learning Pack — Agentic RAG, explained for a backend engineer
 
 This is your interview study guide. **Start with the plain-English section right
-below** — it's the whole system in simple words. Everything after it goes deeper,
-mapping each piece to something you already own (indexes, caches, test suites,
-CI, monitoring) with the design decision, why the alternatives lost, and the
-**measured delta** it produced (numbers in `eval/results/RESULTS.md` + `ANALYSIS.md`).
+below** — it explains the whole system in simple words. Everything after it goes
+deeper. Each part maps to something you already know (indexes, caches, test
+suites, CI, monitoring), with the design decision, why the other options lost,
+and the **measured delta** — the change in score — it produced (numbers in
+`eval/results/RESULTS.md` + `ANALYSIS.md`).
 
 ---
 
@@ -62,212 +63,235 @@ were not. Same instinct as: never ship a service with no tests and no monitoring
 
 ## The one big idea: eval-first
 
-We built the **measurement harness before improving retrieval**. Baseline naive
-RAG got measured first; then hybrid, reranking, and the agentic loop each had to
-*earn their place* with a recorded delta.
+We built the **measurement harness before improving retrieval** — the scoring
+tools came first. We measured the plain, basic RAG setup first. Then hybrid,
+reranking, and the agentic loop each had to *earn their place* by moving the
+recorded score (the delta).
 
-**Backend analogy:** shipping RAG without evals is deploying a distributed
-service with no tests and no monitoring. The golden set is your test suite;
-faithfulness scoring is your prod monitoring; the CI eval gate is your
-"tests-must-pass-to-merge" rule — but for probabilistic outputs where "correct"
-is a distribution, not a boolean. The whole project is that inversion.
+**Backend analogy:** shipping RAG without evals (quality measurements) is like
+deploying a service with no tests and no monitoring. The golden set is your test
+suite; faithfulness scoring (does the answer match its sources?) is your
+production monitoring; the CI eval gate is your "tests must pass to merge" rule —
+but for fuzzy outputs, where "correct" is a spread of scores, not a yes/no. The
+whole project is that flip in order.
 
-The payoff of doing it this way: we caught **two of our own upgrades not earning
-their keep** (hybrid post-rerank; the agentic loop outside vocab-mismatch). An
-eyeball-5-questions workflow ships both as "wins."
+Why this paid off: we caught **two of our own upgrades not earning their keep**
+(hybrid after reranking; the agentic loop outside vocab-mismatch questions). If
+you just eyeball 5 questions by hand, you ship both as "wins."
 
 ---
 
 ## Phase 1 — Embeddings, vector indexes, chunking
 
-**The problem.** An LLM knows nothing about your private/recent docs and
-hallucinates confidently. RAG grounds it: retrieve relevant chunks, stuff them
-in the prompt, cite them.
+**The problem.** An LLM knows nothing about your private or recent docs, and it
+makes things up with confidence. RAG fixes this: fetch the relevant chunks, paste
+them into the prompt, and cite them.
 
-**Embeddings from first principles.** An embedding maps text to a point in
-384-dimensional space such that *similar meaning → nearby points*. "How do I
-test FastAPI?" and "writing FastAPI tests" land close together even with zero
-shared words. Similarity = cosine of the angle between two vectors (1.0 = same
-direction, 0 = orthogonal). We normalize vectors to length 1, so cosine is just
-a dot product.
+**Embeddings from first principles.** An embedding (turning text into a list of
+numbers that captures its meaning) maps text to a point in 384-dimensional space,
+so that *similar meaning → nearby points*. "How do I test FastAPI?" and "writing
+FastAPI tests" land close together even with zero shared words. To measure how
+close two points are, we take the cosine of the angle between the two vectors
+(1.0 = same direction, 0 = at right angles, i.e. unrelated). We scale every
+vector to length 1, so the cosine is just a dot product (multiply matching
+numbers, add them up).
 
 *Tiny 2-D example:* imagine "cat"→(0.9, 0.1), "kitten"→(0.86, 0.15),
 "database"→(0.05, 0.99). cat·kitten ≈ 0.79 (close); cat·database ≈ 0.14 (far).
 Scale that to 384 dims and you have semantic search.
 
-**The vector index — your B-tree-vs-hash instinct, ported.** Comparing the
-query against all 3,125 chunks (exact scan) is O(n) — fine at our scale, a
-non-starter at millions. pgvector offers two approximate indexes:
+**The vector index — your B-tree-vs-hash instinct, ported.** Comparing the query
+against all 3,125 chunks one by one (an exact scan) is O(n) — the work grows with
+the data. Fine at our size, hopeless at millions. pgvector gives you two
+approximate indexes (fast shortcuts that are a little less exact):
 
-- **IVFFlat** partitions vectors into lists (clusters) and only searches the
-  nearest few lists. Like a **hash index**: fast lookups, needs a training step
-  to learn the buckets, degrades if data shifts.
-- **HNSW** builds a navigable small-world graph and greedily walks it toward the
-  query. Like a **B-tree**: no training, better recall-speed tradeoff, higher
-  memory and slower build.
+- **IVFFlat** splits the vectors into lists (clusters) and searches only the few
+  nearest lists. Like a **hash index**: fast lookups, needs a training step to
+  learn the buckets, gets worse if the data shifts.
+- **HNSW** builds a graph you can walk toward the query (a "navigable small-world
+  graph"). Like a **B-tree**: no training, a better speed-vs-quality tradeoff,
+  but more memory and a slower build.
 
-We chose HNSW (cosine). Honest note: at 3k chunks an exact scan would be fine;
-HNSW is here to *demonstrate* the tradeoff. `hnsw.ef_search` (default 40) is the
-search-time "how hard do I look" knob — higher = better recall, slower.
+We chose HNSW (using cosine). Honest note: at 3k chunks a plain exact scan would
+be fine; HNSW is here to *show* the tradeoff. `hnsw.ef_search` (default 40) is the
+"how hard do I look" knob at search time — higher = finds more, but slower.
 
-**Chunking = your index granularity decision.** Too-large chunks bury the answer
-in noise; too-small chunks lose context. We use fixed 400-token windows with
-60-token overlap (overlap so an answer straddling a boundary isn't split). Each
-chunk stores its **character offsets** into the source doc — this matters for
-the golden set (labels anchor to a doc span, then materialize to whatever chunk
-config is live, so re-chunking never silently breaks labels).
+**Chunking = your index granularity decision.** Chunking means splitting the docs
+into pieces. Too-large chunks bury the answer in noise; too-small chunks lose the
+surrounding context. We use fixed 400-token windows with 60-token overlap (the
+overlap means an answer sitting on a boundary isn't cut in half). Each chunk
+stores its **character offsets** (where it starts and ends in the source doc).
+This matters for the golden set: labels point at a span in the doc, then get
+mapped onto whatever chunk config is live, so re-chunking never quietly breaks
+the labels.
 
-**The delta.** This phase *is* the baseline (nothing to beat yet). We
-deliberately found 3 failures (`docs/FAILURES.md`): a false "I don't know" on an
-exact identifier (`hnsw.ef_search`), a vocabulary-mismatch miss (async docs
-never surfaced for a "blocking" question), and an ungated out-of-scope query.
-Each became a target for a later phase.
+**The delta.** This phase *is* the baseline — there's nothing to beat yet. We
+deliberately dug up 3 failures (`docs/FAILURES.md`): a false "I don't know" on an
+exact identifier (`hnsw.ef_search`), a vocabulary-mismatch miss (the async docs
+never showed up for a "blocking" question), and an out-of-scope query that wasn't
+filtered out. Each one became a target for a later phase.
 
 ---
 
 ## Phase 2 — Golden set + retrieval metrics
 
-**The problem.** "It feels better" is not shippable. We need numbers.
+**The problem.** "It feels better" is not something you can ship. We need
+numbers.
 
 **The metrics (know these cold).**
-- **recall@k** — of the chunks that truly answer the question, how many are in
-  the top-k? "Did we retrieve the answer at all?"
-- **MRR** (mean reciprocal rank) — 1/(rank of the first correct chunk). "How
-  high did the first right answer land?" MRR 1.0 = always rank 1; 0.5 = rank 2.
-- **nDCG@10** — graded: rewards ranking a *primary* chunk above a merely
-  *supporting* one, discounted by position. This is why we grade labels
-  primary/supporting instead of binary — nDCG is meaningless without grades.
+- **recall@k** — of the chunks that truly answer the question, how many showed up
+  in the top-k results? "Did we fetch the answer at all?"
+- **MRR** (mean reciprocal rank) — 1/(rank of the first correct chunk). "How high
+  did the first right answer land?" MRR 1.0 = always rank 1; 0.5 = rank 2.
+- **nDCG@10** — a graded score: it rewards putting a *primary* chunk above a
+  merely *supporting* one, and counts hits further down for less. This is why we
+  tag labels primary/supporting instead of just yes/no — nDCG means nothing
+  without those grades.
 
-**Building a golden set honestly.** The cardinal sin is writing a question by
-paraphrasing the chunk you know is the answer — the retriever then matches
-wording no real user would type. Defenses: (1) phrase questions like an engineer
-would ask (often with *different* vocabulary — that's the `vocab-mismatch`
-type), (2) a mechanical **n-gram leakage check** between each question and its
-gold chunk (max observed 0.15, threshold 0.50). 53 questions, 5 types, ~15%
-negative controls (out-of-scope, no valid answer — they measure "does it know
-when it doesn't know?").
+**Building a golden set honestly.** The golden set is our list of test questions
+with the known-correct chunks marked. The worst mistake is writing a question by
+rewording the chunk you already know is the answer — then the retriever just
+matches wording no real user would type. Our defenses: (1) word the questions the
+way an engineer really would (often using *different* words than the doc — that's
+the `vocab-mismatch` type), (2) an automatic **n-gram leakage check** — how much
+wording a question shares with its gold chunk (max observed 0.15, threshold
+0.50). 53 questions, 5 types, ~15% negative controls (out-of-scope, no valid
+answer — they measure "does it know when it doesn't know?").
 
-**Backend analogy:** the golden set is a **fixture-based test suite** for a
-probabilistic function. The config-hash guard (the runner refuses to score if
-the live chunk config doesn't match the labels' materialization) is the same
-instinct as a migration that fails closed on checksum drift.
+**Backend analogy:** the golden set is a **fixture-based test suite** (fixed
+inputs with known expected outputs) for a fuzzy function. The config-hash guard —
+the runner refuses to score if the live chunk config doesn't match the config the
+labels were built against — is the same instinct as a migration that fails shut
+when a checksum drifts.
 
 **The delta (the anchor for everything).** Dense baseline: **recall@10 0.540,
-MRR 0.433, nDCG@10 0.395**. Reproducible to the digit across runs.
+MRR 0.433, nDCG@10 0.395**. The same to the last digit on every run.
 
 ---
 
 ## Phase 3 — LLM-as-judge (generation quality)
 
-**The problem.** Retrieval metrics don't tell you if the *answer* is good. But
-"good" for free-text has no gold string to `assert ==` against.
+**The problem.** Retrieval metrics don't tell you if the *answer* is any good.
+But for free-form text there's no single correct string to `assert ==` against.
 
-**The idea.** Use a second LLM as a grader against a written rubric, scoring
-three axes 1–5: **faithfulness** (are the claims supported by the retrieved
-context?), **groundedness** (does it stay in-context and cite?), **relevance**
-(does it answer the question asked?). Reference-free — the judge sees the same
-context the generator saw, mirroring production where you have no gold answer at
-serving time.
+**The idea.** Use a second LLM as the grader (this is "LLM-as-judge") against a
+written rubric (a fixed set of grading rules), scoring three axes 1–5:
+**faithfulness** (are the claims backed by the fetched context?),
+**groundedness** (does it stay inside that context and cite it?), **relevance**
+(does it answer the question that was asked?). It's reference-free — the judge
+sees only the same context the writer saw, with no gold answer, mirroring
+production, where at serving time you have no correct answer to compare against.
 
 **Why LLM judges are dangerous, and the fixes.**
-- *Self-preference bias* (a model loves its own style) → **cross-family**:
-  llama generates, qwen judges.
-- *Verbosity bias* (longer = better) → rubric scores support/attribution, not
-  length.
-- *The judge might just be wrong* → we **regression-test the judge itself**: it
-  must separate a known-good answer from a seeded hallucination and an off-topic
-  answer *by a margin* before its scores count. (It did: 5/5/5 vs faithfulness=1
-  vs 1/1/1.)
+- *Self-preference bias* (a model favors its own writing style) → use
+  **different model families**: llama writes, qwen grades.
+- *Verbosity bias* (longer looks better) → the rubric scores support and
+  citation, not length.
+- *The judge might just be wrong* → we **regression-test the judge itself**
+  (re-run a fixed check to catch it drifting): before we trust its scores, it
+  must rank a known-good answer clearly above a planted made-up answer and an
+  off-topic one *by a margin*. (It did: 5/5/5 vs faithfulness=1 vs 1/1/1.)
 
 **Backend analogy:** the judge is a flaky dependency, so you write a contract
-test for it before trusting it in your pipeline.
+test for it (a check that it behaves as promised) before you trust it in your
+pipeline.
 
 **The delta.** Naive dense RAG: **faithfulness 4.65, groundedness 4.59,
 relevance 4.13, refusal accuracy 1.00**. Relevance sits *below* faithfulness —
-because bad retrieval yields answers faithful to the *wrong* context. That gap
-is the opening for retrieval upgrades to raise generation quality.
+because bad retrieval hands the model the *wrong* context, and it writes an answer
+that is faithful to that. That gap is the opening for retrieval upgrades to lift
+generation quality.
 
 ---
 
 ## Phase 4 — Hybrid retrieval (BM25 + RRF)
 
-**The problem.** Dense retrieval blurs exact tokens. `hnsw.ef_search`,
-`tools/list`, `<=>` — a single 384-dim vector smears these into a generic
-region and misses the exact chunk.
+**The problem.** Dense retrieval blurs exact tokens (specific words or symbols).
+`hnsw.ef_search`, `tools/list`, `<=>` — one 384-dim vector smears these into a
+vague general area and misses the exact chunk.
 
-**Lexical vs semantic.** BM25 (here via PostgreSQL full-text search) ranks by
-*literal term overlap* — perfect for identifiers, useless for paraphrases.
-Dense is the opposite. **Fusion** combines them.
+**Lexical vs semantic.** BM25 (a classic keyword-scoring method, here run through
+PostgreSQL full-text search) ranks by *literal word overlap* — perfect for exact
+identifiers, useless for reworded phrases. Dense is the opposite: strong on
+meaning, weak on exact words. **Fusion** (blending two result lists into one)
+combines them.
 
-**RRF = your composite-index instinct.** Reciprocal Rank Fusion scores a chunk
-by `Σ 1/(k + rank_in_each_list)` (k=60). It combines by **rank, not score**, so
-the two retrievers' incomparable score scales never need calibrating — like a
-composite index letting two access paths contribute without normalizing their
-costs. A chunk both retrievers rank highly wins.
+**RRF = your composite-index instinct.** RRF (Reciprocal Rank Fusion) scores a
+chunk by `Σ 1/(k + rank_in_each_list)` (k=60). It combines by **rank, not raw
+score**, so the two retrievers' score scales — which aren't comparable — never
+need lining up. It's like a composite index that lets two access paths both
+contribute without converting their costs to a common unit. A chunk that both
+retrievers rank highly wins.
 
-**The delta — and the honest catch.** Hybrid improved recall@10 (0.540 → 0.563,
-+4.2%) but *hurt* MRR (0.433 → 0.402): fusing a weak sparse ranker demotes
-dense's confident top-1 hits. It rescued 7 exact-identifier questions dense
-missed entirely (MCP transports, GIN, WAL) but demoted ~6 others. **Verdict:
-hybrid earns its place as a recall widener, not a precision improver** — which
-is exactly the setup reranking needs. We did *not* tune RRF against the golden
-set (that's overfitting the eval).
+**The delta — and the honest catch.** Hybrid raised recall@10 (0.540 → 0.563,
++4.2%) but *hurt* MRR (0.433 → 0.402): mixing in a weak sparse (keyword) ranker
+pushes down dense's confident top-1 hits. It rescued 7 exact-identifier questions
+dense missed entirely (MCP transports, GIN, WAL) but pushed down ~6 others.
+**Verdict: hybrid earns its place by widening recall, not by improving precision**
+(getting the very top result right) — which is exactly the setup reranking needs.
+We did *not* tune RRF against the golden set (that would be overfitting to the
+eval).
 
 ---
 
 ## Phase 5 — Cross-encoder reranking
 
-**The problem.** Hybrid widened the pool but scrambled precision. Recover it.
+**The problem.** Hybrid widened the pool but scrambled precision (the order of
+the top few). Get it back.
 
-**Bi-encoder vs cross-encoder (the key distinction).** The bi-encoder (bge, used
-for dense retrieval) embeds query and passage **separately** — fast, indexable,
-precomputed, but it never sees the two *together*. A **cross-encoder** feeds
-`(query, passage)` through the model **jointly** and scores the pair, modeling
-term interactions the bi-encoder can't. It's far more accurate but O(candidates)
-model calls per query with **no precomputation** — you can't index it.
+**Bi-encoder vs cross-encoder (the key distinction).** The bi-encoder (bge, the
+model used for dense retrieval) embeds the query and each passage **separately** —
+fast, and you can index and precompute them, but it never sees the two
+*together*. A **cross-encoder** feeds `(query, passage)` through the model **as a
+pair** and scores that pair, so it can weigh how the words interact — which the
+bi-encoder can't. It's far more accurate, but it costs O(candidates) model calls
+per query with **nothing precomputed** — you can't index it.
 
-So the standard split: bi-encoder + BM25 cheaply retrieve a wide pool (top-50),
-cross-encoder precisely reranks it to top-k. Fast filter, then expensive precise
-sort — the same shape as a cheap index scan feeding an expensive recheck.
+So the standard split: bi-encoder + BM25 cheaply pull a wide pool (top-50), then
+the cross-encoder carefully re-sorts (reranks) it down to the top-k. A fast
+filter, then an expensive precise sort — the same shape as a cheap index scan
+feeding an expensive recheck.
 
 **The delta — the big win.** rerank vs dense baseline: **recall@5 0.412 → 0.573
 (+39%), nDCG@10 +16%, MRR +10%.** Cost: retrieve latency **14 ms → ~510 ms** (50
-cross-encoder inferences/query). The precision-for-latency trade, quantified.
+cross-encoder runs per query). The precision-for-latency trade, put in numbers.
 
-**The second honest finding.** `dense+rerank` **ties/beats** `hybrid+rerank`
-(recall@10 0.653 vs 0.627). The exact-identifier cases hybrid rescued were
-already in dense's top-50 pool — reranking surfaces them **without BM25**. So on
-this corpus, **hybrid does not earn its place once reranking exists.** Kept in
-the table anyway. On a lexical/code/log corpus BM25 would likely still pay.
+**The second honest finding.** `dense+rerank` **ties or beats** `hybrid+rerank`
+(recall@10 0.653 vs 0.627). The exact-identifier cases hybrid rescued were already
+sitting in dense's top-50 pool — reranking lifts them up **without BM25**. So on
+this corpus (our document collection), **hybrid does not earn its place once
+reranking exists.** We kept it in the table anyway. On a corpus full of code,
+logs, or exact terms, BM25 would likely still pay.
 
 ---
 
 ## Phase 6 — Agentic loop
 
 **The problem.** Some queries fail no matter how good the retriever, because the
-user's words and the doc's words don't overlap (vocabulary mismatch).
+user's words and the doc's words just don't overlap (a vocabulary mismatch).
 
-**The moves.** Classify the query (factoid/how-to/multi-hop/out-of-scope) →
-optionally **decompose** multi-hop into sub-questions → retrieve + rerank →
-**self-critique** the confidence (cheap heuristic: is the cross-encoder top
-score ≥ 2.0?) → if weak, **HyDE re-query**: ask the LLM to *write a hypothetical
-answer* in documentation vocabulary and retrieve with *that*, closing the
-vocab gap. Bounded by an **iteration cap (2)** and a **token budget (6000)**.
+**The moves.** Sort the query into a type (factoid/how-to/multi-hop/out-of-scope)
+→ if it's multi-hop (needs several facts joined), **decompose** it into
+sub-questions → retrieve + rerank → **self-critique** the confidence with a cheap
+rule of thumb (heuristic: is the cross-encoder top score ≥ 2.0?) → if weak, do a
+**HyDE re-query**: ask the LLM to *write a made-up ideal answer* in the docs' own
+vocabulary and retrieve with *that*, which closes the vocab gap. Bounded by an
+**iteration cap (2)** and a **token budget (6000)**.
 
-**Backend analogy:** this is a retry loop with a circuit breaker. The cap +
+**Backend analogy:** this is a retry loop with a circuit breaker. The cap and
 budget are your max-retries and timeout — they're what stop it looping forever
-(verified by `test_loop_terminates_at_cap`). HyDE is a fallback path taken only
-when the primary looks unhealthy.
+(verified by `test_loop_terminates_at_cap`). HyDE is a fallback path it takes only
+when the main one looks unhealthy.
 
-**The delta — precisely targeted.** Overall +3% vs rerank, but that average
-hides the real result: the entire gain is in **vocab-mismatch (+12.5% recall@10,
+**The delta — precisely targeted.** Overall +3% vs rerank, but that average hides
+the real result: the entire gain lands on **vocab-mismatch (+12.5% recall@10,
 0.417 → 0.542); every other type moved +0.000.** It fixed q064 — the exact
 async-vs-blocking failure from Phase 1 — 0 → 1.0. Cost: 219 tokens/query, p95
-latency 8.2 s on re-queried questions.
+latency (95% of requests are faster than this) 8.2 s on re-queried questions.
 
-**When does the loop pay for itself?** When there's a real vocabulary gap —
-here, ~17% of queries. For the other 83% the classifier is pure overhead. The
-documented redesign: drop the always-on classifier, gate the LLM spend on the
+**When does the loop pay for itself?** When there's a real vocabulary gap — here,
+~17% of queries. For the other 83% the classifier is pure overhead. The redesign
+we wrote down: drop the always-on classifier, and trigger the LLM spend on the
 confidence heuristic alone → ~5× fewer tokens for the same gain. Knowing *when
 not* to be agentic is the senior insight.
 
@@ -277,58 +301,63 @@ not* to be agentic is the senior insight.
 
 **Semantic cache = a cache keyed on meaning.** A normal cache keys on the exact
 query string, so "how to test FastAPI?" and "writing FastAPI tests" miss each
-other. A semantic cache keys on the query **embedding**: a near-duplicate
-(cosine ≥ threshold) hits and skips retrieve+generate — the expensive stages.
-Redis 8 does the vector search.
+other. A semantic cache keys on the query **embedding** (its meaning-vector)
+instead: a near-duplicate (cosine ≥ threshold) is a hit and skips retrieve+generate
+— the expensive stages. Redis 8 does the vector search.
 
 **The threshold is a precision/recall dial, and precision wins.** Measured
-bge-small similarities: close paraphrases ~0.90–0.92, but a *different* question
+bge-small similarities: close rewordings ~0.90–0.92, but a *different* question
 ("HNSW index" vs "partial index") scored 0.74, and heavy rewordings 0.66–0.80 —
 overlapping the different-question range. There's no clean cutoff. We set **0.90
-(precision-first)**: a cache that serves the *wrong* cached answer is worse than
-no cache. Result: exact-repeat hit 1.00, close-paraphrase 0.44, **novel
+(precision-first)**: a cache that serves the *wrong* saved answer is worse than
+no cache at all. Result: exact-repeat hit 1.00, close-paraphrase 0.44, **novel
 false-hit 0.00**.
 
-**Cache invalidation = the honesty problem.** Entries are namespaced by
-`corpus_version : chunk_config_hash : retrieval_mode`. Re-ingest or change the
-pipeline → new namespace → old entries simply miss. No stale answers, ever. Plus
-a TTL. (The two hard things in CS are cache invalidation and naming; we made
-invalidation a key-derivation problem so it can't rot.)
+**Cache invalidation = the honesty problem.** Each entry's key is namespaced
+(prefixed) by `corpus_version : chunk_config_hash : retrieval_mode`. Re-ingest the
+docs or change the pipeline → new prefix → old entries simply miss. No stale
+answers, ever. Plus a TTL (an expiry time). (The two hard things in CS are cache
+invalidation and naming; we made invalidation part of how the key is built, so it
+can't rot.)
 
 **Cost as a first-class metric.** Everything runs locally (zero real spend), so
 we price LLM tokens at public rates — **shadow-dollars** — on every `/query`
-response. "Free" hides the real cost of a design choice; shadow-dollars make
-reranking's latency and the agentic loop's tokens comparable figures.
+response. "Free" hides the real cost of a design choice; shadow-dollars put
+reranking's latency and the agentic loop's tokens on the same scale so you can
+compare them.
 
-**Observability.** OTel spans per stage (cache/retrieve/generate) carry token +
-cost + latency attributes, exported to Jaeger — same wiring as agent-gateway.
-Per-stage p95: retrieve 25 ms (dense) → 653 ms (rerank) → 8.2 s (agentic);
-generation dominates end-to-end.
+**Observability.** Observability means being able to see what the system did
+inside. Per stage (cache/retrieve/generate) we record an OTel span (a timed trace
+segment) carrying token + cost + latency attributes, exported to Jaeger — the same
+wiring as agent-gateway. Per-stage p95: retrieve 25 ms (dense) → 653 ms (rerank)
+→ 8.2 s (agentic); generation dominates end-to-end.
 
 ---
 
 ## Phase 8 — CI eval gates
 
-**The idea.** A PR runs the eval suite; a quality regression **blocks merge**,
-exactly like a failing unit test — but for retrieval quality. Thresholds live in
-`eval/thresholds.yaml` (config-as-data). Retrieval runs fully in CI (bge-small
-on CPU, committed corpus, pgvector container). Generation can't (no Ollama in
-CI), so we verify the newest **committed, hash-stamped** generation result is
-fresh (its `golden_hash` still matches the repo) and above floors — stale or
-regressed → blocked. Same enforcement, zero cloud LLM.
+**The idea.** When someone opens a PR, CI runs the eval suite; a drop in quality
+(a regression) **blocks the merge**, exactly like a failing unit test — but for
+retrieval quality. The pass/fail thresholds live in `eval/thresholds.yaml`
+(config-as-data — the rules are data, not hard-coded). Retrieval runs fully in CI
+(bge-small on CPU, committed corpus, pgvector container). Generation can't (no
+Ollama in CI), so instead we check that the newest **committed, hash-stamped**
+generation result is fresh (its `golden_hash` still matches the repo) and above
+the floors (minimum scores) — stale or regressed → blocked. Same enforcement,
+zero cloud LLM.
 
-**The demonstration (PR #1).** A PR that drops the bge query-instruction prefix
+**The demonstration (PR #1).** A PR that removes the bge query-instruction prefix
 **passes `lint` and `test`** but the `retrieval-gate` catches it —
 `GATE FAIL: recall@10 0.489 < floor 0.5` — and blocks the merge. That's the
-whole point: unit tests check code correctness; only the golden set catches a
-*quality* regression.
+whole point: unit tests check that the code is correct; only the golden set
+catches a drop in *quality*.
 
 **How this changes team velocity.** Without the gate, a well-meaning "small
-retrieval tweak" silently degrades quality and nobody notices until users
-complain. With it, the regression is caught in CI in minutes, with a number.
-It turns "please be careful with retrieval changes" (unenforceable) into a
-mechanical gate — the same shift as going from "please write tests" to
-"coverage must not drop."
+retrieval tweak" quietly makes quality worse and nobody notices until users
+complain. With it, the regression is caught in CI within minutes, with a number
+attached. It turns "please be careful with retrieval changes" (which you can't
+enforce) into a mechanical gate — the same shift as going from "please write
+tests" to "coverage must not drop."
 
 ---
 
@@ -351,21 +380,21 @@ mechanical gate — the same shift as going from "please write tests" to
 | rerank pipeline | 4.65 | 4.72 | **4.74** |
 
 The headline: **relevance +15% (4.13 → 4.74)** from better retrieval alone —
-faithfulness was never the problem (llama grounds well), *relevance* was, because
-naive retrieval fed it the wrong context. Fix retrieval, relevance follows. Both
-refuse 100% of out-of-scope questions.
+faithfulness was never the problem (llama grounds its answers well), *relevance*
+was, because naive retrieval fed it the wrong context. Fix the retrieval and
+relevance follows. Both pipelines refuse 100% of out-of-scope questions.
 
 **Cache:** overall hit-rate 0.63, exact-repeat 1.00, novel false-hit 0.00.
 
 ## The five interview narratives
 
-1. **Why eval-first?** It caught two of my own upgrades not earning their keep.
-   Show the table.
+1. **Why eval-first?** It caught two of my own upgrades that weren't earning
+   their keep. Show the table.
 2. **Why did hybrid beat dense — then stop mattering?** BM25 rescued exact
-   identifiers, but reranking already recovered them from the pool.
-3. **When is reranking worth it?** +16% nDCG for ~500 ms — yes for quality-
-   sensitive, gate it behind confidence for latency-sensitive.
+   identifiers, but reranking already pulled them back from the pool on its own.
+3. **When is reranking worth it?** +16% nDCG for ~500 ms — yes when quality
+   matters; when latency matters, run it only when confidence is low.
 4. **When does the agentic loop pay for itself?** Only on vocabulary mismatch
-   (+12.5%); a cap + token budget stop it looping forever.
+   (+12.5%); a cap plus a token budget stop it looping forever.
 5. **How do CI eval gates change how a team ships RAG?** They turn "be careful"
    into a mechanical, numeric merge gate — PR #1 proves it.
