@@ -106,9 +106,7 @@ async def run_generation_eval(label: str, limit: int | None, provisional: bool) 
     embedder = build_embedder(
         settings.embedding_backend, settings.embedding_model, settings.embedding_dim
     )
-    retriever = build_retriever(
-        settings.retrieval_mode, pool, embedder, chunk_config.config_hash
-    )
+    retriever = build_retriever(settings.retrieval_mode, pool, embedder, chunk_config.config_hash)
     service = RAGService(retriever, gen_llm, settings.top_k)
     judge = Judge(judge_llm)
 

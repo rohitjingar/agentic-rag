@@ -23,9 +23,7 @@ async def sparse_search(
 ) -> list[RetrievedChunk]:
     async with pool.connection() as conn:
         # lexemize the question with the same config as the index, then OR terms
-        cur = await conn.execute(
-            "SELECT tsvector_to_array(to_tsvector('english', %s))", (query,)
-        )
+        cur = await conn.execute("SELECT tsvector_to_array(to_tsvector('english', %s))", (query,))
         (lexemes,) = await cur.fetchone()
         if not lexemes:
             return []
