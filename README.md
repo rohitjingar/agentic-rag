@@ -52,6 +52,30 @@ full-text search. Fusion = Reciprocal Rank Fusion. Reranker =
 Redis 8 vector search. Everything is one pluggable `Retriever` interface, so
 serving and evaluation run the identical retrieval code.
 
+## How it finds answers, in plain English
+
+Picture a librarian finding the right pages for your question out of thousands.
+The retrieval "modes" (`RAG_RETRIEVAL_MODE`) are that librarian, from
+fast-and-rough to slow-and-smart:
+
+- **`dense`** — searches by *gist*: every page and your question become a
+  "meaning fingerprint," and it grabs the closest ones. Fast, but blurs exact
+  terms like `ef_search`.
+- **`rerank`** — `dense` grabs ~50 candidates, then a slower, smarter model reads
+  each one *next to your question* and re-sorts them so the best lands on top.
+  The big accuracy jump.
+- **`agentic`** — `rerank`, plus the system checks its own confidence and, when a
+  result looks weak, rewrites the query in the docs' vocabulary and retries
+  (capped at 2 tries). Helps vocabulary-mismatch questions; costs extra tokens.
+
+In one line: **dense = fast & rough → rerank = add a smart re-sorter → agentic =
+add self-checking + a smart retry.** (`sparse` = keyword search; `hybrid` =
+dense+sparse — kept for comparison, but reranking made both redundant here.)
+
+Answering has **two halves that can each fail**: *finding* the right page
+(retrieval) and the LLM *reading* it correctly (generation). The eval harness
+scores them separately, because a fix to one doesn't fix the other.
+
 ## Results (golden set: 46 answerable + 7 negative controls)
 
 ### Retrieval

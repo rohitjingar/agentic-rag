@@ -1,10 +1,64 @@
 # Learning Pack — Agentic RAG, explained for a backend engineer
 
-This is your interview study guide. Every section maps a retrieval/eval concept
-to something you already own — indexes, caches, test suites, CI, monitoring —
-then gives the design decision, why the alternatives lost, and the **measured
-delta** it produced. The numbers are the golden-set results in
-`eval/results/RESULTS.md` and `ANALYSIS.md`.
+This is your interview study guide. **Start with the plain-English section right
+below** — it's the whole system in simple words. Everything after it goes deeper,
+mapping each piece to something you already own (indexes, caches, test suites,
+CI, monitoring) with the design decision, why the alternatives lost, and the
+**measured delta** it produced (numbers in `eval/results/RESULTS.md` + `ANALYSIS.md`).
+
+---
+
+## Start here — the whole thing in plain English
+
+**What this project does.** You ask a question; the system finds the right pages
+from a big pile of documents and has an AI write an answer from them, with
+citations. Plus — the real point — it can **prove with numbers** whether the
+answers are actually good.
+
+**Why bother?** An AI model on its own has two problems: it confidently makes
+things up, and it doesn't know *your* documents. So we don't let it answer from
+memory — we *fetch the relevant pages first* and say "answer using only these."
+Think of the AI as a brilliant new hire who hasn't read the company wiki: instead
+of letting them guess, you hand them the 5 right wiki pages first. That's RAG
+(Retrieval-Augmented Generation).
+
+**How it finds the right pages — the three "modes."** Imagine a librarian
+finding pages for you, from fast-and-dumb to slow-and-smart:
+
+- **`dense`** — searches by *gist*. Every page and your question become a
+  "meaning fingerprint" (a list of numbers); she grabs the pages whose
+  fingerprints are closest. Fast and decent, but bad with exact terms — ask for
+  `ef_search` and she blurs it and grabs the wrong shelf. **(fast, rough)**
+- **`rerank`** — dense, then a smarter second pass. The fast librarian hands over
+  ~50 maybe-right pages; a slower, smarter model reads each one *next to your
+  question* and re-sorts them so the best lands on top. Much more accurate — the
+  big quality jump. (It literally "re-ranks" the 50.) **(the win)**
+- **`agentic`** — rerank, plus the system checks its own work. If its best result
+  looks weak, it doesn't give up: it asks the AI to *write a pretend perfect
+  answer in the documents' own words*, then searches again with that — bridging
+  the "you said *freezing*, the docs say *async*" gap. Capped at 2 tries so it
+  can't loop forever. "Agentic" = it **makes decisions** (retry? how? stop?)
+  instead of blindly running one fixed path. **(smartest, slowest, costs tokens)**
+
+  One line: **dense = fast & rough → rerank = add a smart re-sorter → agentic =
+  add self-checking + a smart retry.** (You'll also see `sparse` = plain keyword
+  search like Ctrl-F, and `hybrid` = dense+sparse blended — those two didn't earn
+  their keep, so ignore them.)
+
+**The two halves that can each break.** Answering has two steps, and either can
+fail on its own: (1) **finding** the right page, and (2) the AI actually
+**reading** it and answering. In the live demo, reranking *found* the page saying
+"ef_search is 40 by default," but the small local AI still fumbled and refused.
+That's why we score the two halves separately — you need both to work.
+
+**The one big idea — measure before you improve.** Most people build a fancy
+pipeline, try 5 questions by hand, and ship. We did the opposite: first we built
+a **scorecard** — 53 real questions with their known-correct pages marked — and
+made every upgrade *prove* it helps by moving the score. A test suite, but for a
+fuzzy system. It's how we knew reranking was real and two of our own upgrades
+were not. Same instinct as: never ship a service with no tests and no monitoring.
+
+---
 
 ## The one big idea: eval-first
 
@@ -241,10 +295,10 @@ pipeline → new namespace → old entries simply miss. No stale answers, ever. 
 a TTL. (The two hard things in CS are cache invalidation and naming; we made
 invalidation a key-derivation problem so it can't rot.)
 
-**Cost as a first-class metric.** Everything runs locally ($0), so we price LLM
-tokens at public rates — **shadow-$** — on every `/query` response. "Free" hides
-the real cost of a design choice; shadow-$ makes reranking's latency and the
-agentic loop's tokens comparable dollar figures.
+**Cost as a first-class metric.** Everything runs locally (zero real spend), so
+we price LLM tokens at public rates — **shadow-dollars** — on every `/query`
+response. "Free" hides the real cost of a design choice; shadow-dollars make
+reranking's latency and the agentic loop's tokens comparable figures.
 
 **Observability.** OTel spans per stage (cache/retrieve/generate) carry token +
 cost + latency attributes, exported to Jaeger — same wiring as agent-gateway.

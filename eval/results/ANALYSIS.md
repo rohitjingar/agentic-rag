@@ -170,7 +170,7 @@ reranking is present.
 | overall | 0.63 |
 
 Each hit skips retrieve + generate entirely: saves the generation cost
-(~$0.0006 shadow/query at Haiku-class rates) **and** the full retrieve+generate
+(~\$0.0006 shadow/query at Haiku-class rates) **and** the full retrieve+generate
 latency (rerank ~510 ms + generation seconds). The **0.00 false-hit rate on
 novel queries is the number that matters** — a semantic cache that serves a
 wrong answer to a different question is worse than no cache.
