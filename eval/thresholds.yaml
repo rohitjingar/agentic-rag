@@ -1,0 +1,16 @@
+# Eval gate thresholds — config-as-data. A PR that drops below these fails CI.
+# Absolute floors, not deltas, so the gate is stable across noise; set a couple
+# of points below the recorded baselines to catch real regressions, not jitter.
+
+retrieval:
+  mode: dense          # gated in CI (bge-small only, no cross-encoder download)
+  min_recall_at_10: 0.50   # dense baseline 0.54 -> floor 0.50
+  min_mrr: 0.38            # dense baseline 0.43 -> floor 0.38
+  min_ndcg_at_10: 0.35    # dense baseline 0.40 -> floor 0.35
+
+generation:
+  # verified against the newest committed generation result (no Ollama in CI):
+  # its stamped golden_hash + judge_prompt_version must match the live repo AND
+  # it must clear these floors, else the gate fails (stale or regressed).
+  min_faithfulness: 4.0    # baseline 4.65
+  min_refusal_accuracy: 0.85  # baseline 1.0
