@@ -51,3 +51,5 @@ class QueryResult(BaseModel):
     tokens_in: int
     tokens_out: int
     timings: StageTimings
+    cached: bool = False
+    shadow_usd: float = 0.0

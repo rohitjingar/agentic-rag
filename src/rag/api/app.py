@@ -11,11 +11,14 @@ from fastapi.responses import JSONResponse
 from psycopg_pool import AsyncConnectionPool
 
 from rag.api.routes import router
+from rag.cache.semantic import SemanticCache
 from rag.config import Settings, get_settings
 from rag.db import discover_migrations, run_migrations
 from rag.generation.client import OllamaClient
 from rag.ingest.chunker import ChunkConfig
 from rag.ingest.embedder import Embedder, build_embedder
+from rag.ingest.pipeline import corpus_version
+from rag.obs.otel import setup_tracing
 from rag.query import RAGService
 from rag.retrieval.factory import build_retriever
 
@@ -26,6 +29,15 @@ def chunk_config_from(settings: Settings) -> ChunkConfig:
         overlap_tokens=settings.chunk_overlap_tokens,
         tokenizer_model=settings.embedding_model,
     )
+
+
+def cache_namespace(settings: Settings) -> str:
+    """Namespace ties cached answers to the corpus AND the pipeline config, so a
+    re-ingest or a retrieval/mode change can never serve a stale answer."""
+    from pathlib import Path
+
+    cfg = chunk_config_from(settings).config_hash
+    return f"{corpus_version(Path(settings.corpus_dir))}:{cfg}:{settings.retrieval_mode}"
 
 
 def create_app(
@@ -40,6 +52,8 @@ def create_app(
     async def lifespan(app: FastAPI):
         # Fail closed: migrations applied + a live DB pool before serving anything.
         run_migrations(settings.database_url)
+        if settings.otel_enabled:
+            setup_tracing("agentic-rag", settings.otel_endpoint)
         pool = AsyncConnectionPool(settings.database_url, min_size=1, max_size=10, open=False)
         await pool.open()
         await pool.wait(timeout=10)
@@ -61,8 +75,23 @@ def create_app(
             chunk_config_from(settings).config_hash,
             reranker_backend=settings.reranker_backend,
             reranker_model=settings.reranker_model,
+            llm=app.state.llm,
         )
-        app.state.rag = RAGService(retriever=retriever, llm=app.state.llm, top_k=settings.top_k)
+        cache = None
+        if settings.cache_enabled:
+            cache = SemanticCache(
+                redis,
+                app.state.embedder,
+                cache_namespace(settings),
+                threshold=settings.cache_similarity_threshold,
+                ttl_seconds=settings.cache_ttl_seconds,
+                dim=settings.embedding_dim,
+            )
+            await cache.ensure_index()
+        app.state.cache = cache
+        app.state.rag = RAGService(
+            retriever=retriever, llm=app.state.llm, top_k=settings.top_k, cache=cache
+        )
         try:
             yield
         finally:
