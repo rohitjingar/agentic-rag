@@ -1,0 +1,517 @@
+{
+  "label": "rerank-dense",
+  "mode": "rerank-dense",
+  "provisional": true,
+  "timestamp": "2026-07-06T08:47:53+00:00",
+  "corpus_version": "68daa1e88c7a",
+  "chunk_config_hash": "698505d5978c",
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "num_questions": 53,
+  "num_answerable": 46,
+  "num_negative": 7,
+  "metrics": {
+    "overall": {
+      "n": 46,
+      "recall@5": 0.5688,
+      "recall@10": 0.653,
+      "mrr": 0.4875,
+      "ndcg@10": 0.475
+    },
+    "by_qtype": {
+      "factoid": {
+        "n": 20,
+        "recall@5": 0.6464,
+        "recall@10": 0.7369,
+        "mrr": 0.4938,
+        "ndcg@10": 0.5339
+      },
+      "how-to": {
+        "n": 14,
+        "recall@5": 0.4515,
+        "recall@10": 0.5691,
+        "mrr": 0.3786,
+        "ndcg@10": 0.3865
+      },
+      "multi-hop": {
+        "n": 4,
+        "recall@5": 0.75,
+        "recall@10": 0.75,
+        "mrr": 0.5625,
+        "ndcg@10": 0.5155
+      },
+      "vocab-mismatch": {
+        "n": 8,
+        "recall@5": 0.4896,
+        "recall@10": 0.5417,
+        "mrr": 0.625,
+        "ndcg@10": 0.4626
+      }
+    },
+    "latency_ms": {
+      "retrieve_p50": 504.2,
+      "retrieve_p95": 559.5
+    }
+  },
+  "per_question": [
+    {
+      "qid": "q001",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 3.2825324535369873,
+      "retrieve_ms": 625.9825420129346
+    },
+    {
+      "qid": "q002",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg_at_10": 0.5,
+      "top_score": 3.196605682373047,
+      "retrieve_ms": 519.8568750056438
+    },
+    {
+      "qid": "q003",
+      "qtype": "how-to",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg_at_10": 0.5,
+      "top_score": 5.474545478820801,
+      "retrieve_ms": 524.2301660036901
+    },
+    {
+      "qid": "q004",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 2.857083559036255,
+      "retrieve_ms": 514.7035000118194
+    },
+    {
+      "qid": "q005",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": -0.3668708801269531,
+      "retrieve_ms": 516.0898750036722
+    },
+    {
+      "qid": "q006",
+      "qtype": "how-to",
+      "recall_at_5": 0.5,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.46845052016107697,
+      "top_score": 4.768002510070801,
+      "retrieve_ms": 507.4451670079725
+    },
+    {
+      "qid": "q016",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 6.234250545501709,
+      "retrieve_ms": 546.1771669943118
+    },
+    {
+      "qid": "q017",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.9197207891481876,
+      "top_score": 3.8088135719299316,
+      "retrieve_ms": 559.4793330092216
+    },
+    {
+      "qid": "q018",
+      "qtype": "multi-hop",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.9197207891481876,
+      "top_score": 3.9799749851226807,
+      "retrieve_ms": 525.5582919926383
+    },
+    {
+      "qid": "q019",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.9197207891481876,
+      "top_score": 4.662459373474121,
+      "retrieve_ms": 538.7159580131993
+    },
+    {
+      "qid": "q020",
+      "qtype": "how-to",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg_at_10": 0.5,
+      "top_score": 4.398684501647949,
+      "retrieve_ms": 488.4671659965534
+    },
+    {
+      "qid": "q021",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 3.8312556743621826,
+      "retrieve_ms": 524.572000009357
+    },
+    {
+      "qid": "q022",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.3333333333333333,
+      "mrr": 0.1,
+      "ndcg_at_10": 0.13565197343244778,
+      "top_score": 3.3251137733459473,
+      "retrieve_ms": 516.2274169997545
+    },
+    {
+      "qid": "q023",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 3.335700035095215,
+      "retrieve_ms": 516.9461250043241
+    },
+    {
+      "qid": "q024",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 7.002885818481445,
+      "retrieve_ms": 540.3220000007423
+    },
+    {
+      "qid": "q025",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 1.945061445236206,
+      "retrieve_ms": 540.4399580002064
+    },
+    {
+      "qid": "q026",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.43067655807339306,
+      "top_score": 5.741166591644287,
+      "retrieve_ms": 485.1186250016326
+    },
+    {
+      "qid": "q027",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.3333333333333333,
+      "mrr": 0.125,
+      "ndcg_at_10": 0.1480409554829326,
+      "top_score": 1.3819962739944458,
+      "retrieve_ms": 502.0817079930566
+    },
+    {
+      "qid": "q031",
+      "qtype": "how-to",
+      "recall_at_5": 0.3333333333333333,
+      "recall_at_10": 0.3333333333333333,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.46927872602275644,
+      "top_score": 2.550518751144409,
+      "retrieve_ms": 526.5902090031886
+    },
+    {
+      "qid": "q032",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.25,
+      "recall_at_10": 0.5,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.5294362295028773,
+      "top_score": 5.641082763671875,
+      "retrieve_ms": 515.0334160134662
+    },
+    {
+      "qid": "q033",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.3333333333333333,
+      "recall_at_10": 0.3333333333333333,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.46927872602275644,
+      "top_score": -1.3612594604492188,
+      "retrieve_ms": 476.19841700361576
+    },
+    {
+      "qid": "q034",
+      "qtype": "how-to",
+      "recall_at_5": 0.3333333333333333,
+      "recall_at_10": 0.6666666666666666,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.6257049680303419,
+      "top_score": 6.376814842224121,
+      "retrieve_ms": 503.18370800232515
+    },
+    {
+      "qid": "q035",
+      "qtype": "multi-hop",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.8670870086853021,
+      "top_score": 1.6248576641082764,
+      "retrieve_ms": 530.095333000645
+    },
+    {
+      "qid": "q036",
+      "qtype": "how-to",
+      "recall_at_5": 0.5,
+      "recall_at_10": 0.75,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.44229834886928765,
+      "top_score": 7.121683120727539,
+      "retrieve_ms": 499.70845800999086
+    },
+    {
+      "qid": "q037",
+      "qtype": "how-to",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.5,
+      "ndcg_at_10": 0.6309297535714575,
+      "top_score": 2.8025200366973877,
+      "retrieve_ms": 471.7464999994263
+    },
+    {
+      "qid": "q038",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.43067655807339306,
+      "top_score": 7.8052520751953125,
+      "retrieve_ms": 488.21354200481437
+    },
+    {
+      "qid": "q039",
+      "qtype": "factoid",
+      "recall_at_5": 0.16666666666666666,
+      "recall_at_10": 0.16666666666666666,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.13032376591037065,
+      "top_score": 3.104093074798584,
+      "retrieve_ms": 473.0032079969533
+    },
+    {
+      "qid": "q040",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.43067655807339306,
+      "top_score": 6.097754001617432,
+      "retrieve_ms": 485.2049160108436
+    },
+    {
+      "qid": "q041",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 5.703097820281982,
+      "retrieve_ms": 540.1123750052648
+    },
+    {
+      "qid": "q042",
+      "qtype": "how-to",
+      "recall_at_5": 0.5,
+      "recall_at_10": 0.5,
+      "mrr": 0.2,
+      "ndcg_at_10": 0.23719771276929622,
+      "top_score": 6.84201717376709,
+      "retrieve_ms": 493.2341249950696
+    },
+    {
+      "qid": "q043",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 2.552734375,
+      "retrieve_ms": 468.7270829890622
+    },
+    {
+      "qid": "q044",
+      "qtype": "multi-hop",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 3.123666286468506,
+      "retrieve_ms": 518.2599160034442
+    },
+    {
+      "qid": "q060",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.5,
+      "ndcg_at_10": 0.836194645141592,
+      "top_score": 1.8529390096664429,
+      "retrieve_ms": 496.373041998595
+    },
+    {
+      "qid": "q061",
+      "qtype": "factoid",
+      "recall_at_5": 0.3333333333333333,
+      "recall_at_10": 0.6666666666666666,
+      "mrr": 0.5,
+      "ndcg_at_10": 0.4632423659320675,
+      "top_score": 2.0109939575195312,
+      "retrieve_ms": 501.7159580020234
+    },
+    {
+      "qid": "q062",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 0.3333333333333333,
+      "recall_at_10": 0.5,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.5205324778030482,
+      "top_score": 4.74202299118042,
+      "retrieve_ms": 491.3564999878872
+    },
+    {
+      "qid": "q063",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 4.941206932067871,
+      "retrieve_ms": 495.6022909900639
+    },
+    {
+      "qid": "q064",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.5,
+      "ndcg_at_10": 0.6309297535714575,
+      "top_score": 1.774834394454956,
+      "retrieve_ms": 562.9337080026744
+    },
+    {
+      "qid": "q065",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.16666666666666666,
+      "ndcg_at_10": 0.3562071871080222,
+      "top_score": 4.997876167297363,
+      "retrieve_ms": 474.23716699995566
+    },
+    {
+      "qid": "q066",
+      "qtype": "how-to",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 3.769442558288574,
+      "retrieve_ms": 475.39366700220853
+    },
+    {
+      "qid": "q067",
+      "qtype": "how-to",
+      "recall_at_5": 0.15384615384615385,
+      "recall_at_10": 0.38461538461538464,
+      "mrr": 0.3333333333333333,
+      "ndcg_at_10": 0.40160493302575007,
+      "top_score": 3.7543296813964844,
+      "retrieve_ms": 504.24366699007805
+    },
+    {
+      "qid": "q068",
+      "qtype": "factoid",
+      "recall_at_5": 0.42857142857142855,
+      "recall_at_10": 0.5714285714285714,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.6013972017069863,
+      "top_score": 2.7066493034362793,
+      "retrieve_ms": 471.6857909952523
+    },
+    {
+      "qid": "q069",
+      "qtype": "factoid",
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr": 0.0,
+      "ndcg_at_10": 0.0,
+      "top_score": 5.5590643882751465,
+      "retrieve_ms": 490.65654100559186
+    },
+    {
+      "qid": "q070",
+      "qtype": "multi-hop",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.27511096828801057,
+      "top_score": 3.1422572135925293,
+      "retrieve_ms": 541.6962079907535
+    },
+    {
+      "qid": "q071",
+      "qtype": "how-to",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_score": 6.478487014770508,
+      "retrieve_ms": 474.736167001538
+    },
+    {
+      "qid": "q072",
+      "qtype": "factoid",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.25,
+      "ndcg_at_10": 0.43067655807339306,
+      "top_score": 3.1209425926208496,
+      "retrieve_ms": 496.3540419994388
+    },
+    {
+      "qid": "q073",
+      "qtype": "vocab-mismatch",
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr": 0.5,
+      "ndcg_at_10": 0.6309297535714575,
+      "top_score": 2.709857940673828,
+      "retrieve_ms": 512.2705829999177
+    }
+  ]
+}

@@ -50,3 +50,47 @@ _Interview line:_ "Hybrid alone traded 7% MRR for 4% recall — a bad deal on it
 own. It only pays off because reranking turns that wider pool back into
 precision. Eval-first is how I knew to keep going rather than ship hybrid as a
 'win.'"
+
+### Phase 5 — reranking: the real win, AND hybrid fails to earn its keep
+
+| config | recall@5 | recall@10 | MRR | nDCG@10 | retrieve p50 ms |
+|---|---|---|---|---|---|
+| dense (baseline) | 0.412 | 0.540 | 0.433 | 0.395 | 14 |
+| hybrid | 0.427 | 0.563 | 0.402 | 0.389 | 36 |
+| **rerank (hybrid base)** | **0.573** | 0.627 | 0.477 | 0.459 | 526 |
+| rerank (dense base) | 0.569 | 0.653 | 0.488 | 0.475 | 504 |
+
+**Reranking is the biggest single win.** rerank(hybrid) vs dense baseline:
+recall@5 +39% (0.412 → 0.573), nDCG@10 +16%, MRR +10%. It recovered the
+precision hybrid lost *and* surpassed the baseline — the cross-encoder scores
+each (query, chunk) pair jointly and pulls the right chunks from the 50-wide
+pool up into the top-5.
+
+**The cost, quantified:** retrieve latency 14 ms → ~510 ms p50 (~36×). The
+cross-encoder runs 50 model inferences per query with no precomputation. That
+is the precision-for-latency trade, measured — for a latency-sensitive service
+you'd shrink the pool, cache, or rerank only low-confidence queries (Phase 6).
+
+**Hybrid does NOT earn its place in the final pipeline (the honest headline).**
+rerank(dense) ties — actually slightly beats — rerank(hybrid): recall@10 0.653
+vs 0.627, MRR 0.488 vs 0.477. Per-question, the exact-identifier cases hybrid
+rescued over *plain* dense (q037, q038, q063, q073) are **all recovered by
+dense+rerank too** — those chunks were in dense's top-50 pool all along, just
+ranked 11–50; the reranker surfaces them without BM25's help. So on this
+corpus BM25 + RRF adds an FTS index and fusion complexity for ~zero gain once
+reranking is present.
+
+Kept honestly in the table, not silently dropped. This does not mean hybrid is
+useless — on a lexical/code/log corpus, or with a smaller rerank pool, BM25
+would likely still pay. On *this* documentation corpus, measured, it did not.
+
+_Interview line:_ "I added BM25 hybrid retrieval and it improved recall. Then I
+measured the full pipeline and found dense+rerank matched hybrid+rerank — my own
+addition didn't earn its place once the reranker was in. I kept the number in
+the table anyway. That willingness to measure your own work out of the pipeline
+is the whole point."
+
+_Pipeline choice:_ the results-table narrative follows baseline → hybrid →
+rerank → agentic (rerank over the hybrid stack). In production on this corpus
+I'd default to **dense + rerank** (simpler, equal-or-better) and keep hybrid
+behind a flag for lexical-heavy deployments.
