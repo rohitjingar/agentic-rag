@@ -94,3 +94,65 @@ _Pipeline choice:_ the results-table narrative follows baseline → hybrid →
 rerank → agentic (rerank over the hybrid stack). In production on this corpus
 I'd default to **dense + rerank** (simpler, equal-or-better) and keep hybrid
 behind a flag for lexical-heavy deployments.
+
+### Phase 6 — agentic loop: pays off ONLY for vocabulary mismatch
+
+| config | recall@5 | recall@10 | MRR | nDCG@10 | p50/p95 ms | tokens/q |
+|---|---|---|---|---|---|---|
+| rerank (hybrid) | 0.573 | 0.627 | 0.477 | 0.459 | 526/653 | 0 |
+| **agentic** | 0.595 | 0.648 | 0.488 | 0.473 | 1516/8246 | 219 |
+
+Aggregate delta vs rerank is small (+3–4%). But the *per-type* breakdown is the
+whole story — the gain is entirely in one bucket:
+
+| qtype | rerank r@10 | agentic r@10 | delta | mean iters |
+|---|---|---|---|---|
+| factoid | 0.730 | 0.730 | **+0.000** | 1.10 |
+| how-to | 0.564 | 0.564 | **+0.000** | 1.07 |
+| multi-hop | 0.750 | 0.750 | **+0.000** | 1.25 |
+| vocab-mismatch | 0.417 | **0.542** | **+0.125** | 1.38 |
+
+The loop earns its keep on **vocabulary mismatch and nowhere else**. The HyDE
+re-query — write a hypothetical answer in documentation vocabulary, retrieve
+with that — closes exactly the gap that sinks vocab-mismatch queries. Concretely
+it fixed **q064** (the Failure-2 case: "stop my API blocking on a slow call" →
+FastAPI's async/concurrency docs), 0.00 → 1.00 recall@10. It lost nothing.
+
+For the other 83% of queries the loop added **zero retrieval gain** — rerank
+already handled them — so the classify call and any re-query were pure overhead.
+Decomposition on multi-hop likewise added cost without moving recall (rerank
+already got multi-hop to 0.75).
+
+**When does the agentic loop pay for itself?** When the corpus/query mix has a
+real vocabulary gap. Measured here: worth it for ~17% of queries, overhead for
+the rest. **What stops it looping forever?** The iteration cap (2) and the
+per-query token budget (6000) — verified by `test_loop_terminates_at_cap`.
+
+**Cost, and the loop-engineering lesson.** Mean 219 tokens/query, but a
+classification call fires on *every* query while only vocab-mismatch benefits.
+The efficient redesign: drop the always-on classifier and trigger the HyDE
+re-query purely off the confidence heuristic (retrieve → rerank → if top score
+< 2.0, re-query) — paying LLM cost only on the low-confidence tail (~15% of
+queries) instead of all of them. That would cut mean tokens ~5× for the same
+retrieval gain. (Left as a documented improvement — the current version shows
+the full classify/decompose/critique/HyDE machinery the spec asked for.)
+
+_Interview line:_ "The agentic loop improved recall 3% overall — but averaged
+across types that hides the real result: +12.5% on vocabulary-mismatch queries,
+0% everywhere else. It fixed the exact async-vs-blocking failure I found in
+Phase 1. The honest cost read is that classifying every query to help 17% of
+them is wasteful; the confidence heuristic alone should gate the LLM spend. Cap
++ token budget guarantee termination."
+
+## Full ladder (retrieval, vs dense baseline)
+
+| config | recall@5 | recall@10 | nDCG@10 | Δ recall@5 |
+|---|---|---|---|---|
+| dense (baseline) | 0.412 | 0.540 | 0.395 | — |
+| hybrid | 0.427 | 0.563 | 0.389 | +3.6% |
+| rerank | 0.573 | 0.627 | 0.459 | +38.9% |
+| agentic | 0.595 | 0.648 | 0.473 | +44.3% |
+
+Reranking is the load-bearing upgrade; the agentic loop adds a targeted
+vocab-mismatch gain on top. Hybrid's standalone contribution washes out once
+reranking is present.
