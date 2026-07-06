@@ -69,6 +69,7 @@ async def _query(question: str, top_k: int | None) -> None:
         chunk_config_from(settings).config_hash,
         reranker_backend=settings.reranker_backend,
         reranker_model=settings.reranker_model,
+        llm=llm,  # agentic mode needs the LLM for classify/transform/critique
     )
     service = RAGService(retriever, llm, settings.top_k)
     try:
