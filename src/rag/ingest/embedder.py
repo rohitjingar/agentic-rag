@@ -39,9 +39,11 @@ class SentenceTransformerEmbedder:
         return [v.tolist() for v in vectors]
 
     def encode_query(self, text: str) -> list[float]:
-        vector = self._model.encode(
-            _BGE_QUERY_PREFIX + text, normalize_embeddings=True, show_progress_bar=False
-        )
+        # SEEDED REGRESSION (demo): dropped the bge query-instruction prefix.
+        # bge is asymmetric — without it, query/passage matching degrades and
+        # recall@10 falls 0.54 -> 0.49, below the eval-gate floor. This is the
+        # kind of silent quality regression the CI eval gate is built to catch.
+        vector = self._model.encode(text, normalize_embeddings=True, show_progress_bar=False)
         return vector.tolist()
 
 
