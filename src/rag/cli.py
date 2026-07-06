@@ -51,6 +51,7 @@ async def _query(question: str, top_k: int | None) -> None:
     from rag.generation.client import OllamaClient
     from rag.ingest.embedder import build_embedder
     from rag.query import RAGService
+    from rag.retrieval.factory import build_retriever
 
     settings = get_settings()
     pool = AsyncConnectionPool(settings.database_url, min_size=1, max_size=2, open=False)
@@ -61,7 +62,10 @@ async def _query(question: str, top_k: int | None) -> None:
     embedder = build_embedder(
         settings.embedding_backend, settings.embedding_model, settings.embedding_dim
     )
-    service = RAGService(pool, embedder, llm, chunk_config_from(settings), settings.top_k)
+    retriever = build_retriever(
+        settings.retrieval_mode, pool, embedder, chunk_config_from(settings).config_hash
+    )
+    service = RAGService(retriever, llm, settings.top_k)
     try:
         result = await service.answer(question, top_k=top_k)
     finally:

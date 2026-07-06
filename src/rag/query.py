@@ -1,33 +1,24 @@
-"""Query orchestration: embed -> retrieve -> generate, with per-stage timings."""
+"""Query orchestration: retrieve -> generate, with per-stage timings.
+
+Retrieval is a pluggable Retriever (dense / sparse / hybrid / rerank / agentic),
+so serving and eval share one code path and the API's retrieval mode is a config
+flag, not a rewrite.
+"""
 
 from __future__ import annotations
 
 from time import perf_counter
 
-import anyio.to_thread
-from psycopg_pool import AsyncConnectionPool
-
 from rag.generation.client import OllamaClient
 from rag.generation.prompts import REFUSAL, SYSTEM_ANSWER, build_user_prompt
-from rag.ingest.chunker import ChunkConfig
-from rag.ingest.embedder import Embedder
 from rag.models import QueryResult, StageTimings
-from rag.retrieval.dense import dense_search
+from rag.retrieval.factory import Retriever
 
 
 class RAGService:
-    def __init__(
-        self,
-        pool: AsyncConnectionPool,
-        embedder: Embedder,
-        llm: OllamaClient,
-        chunk_config: ChunkConfig,
-        top_k: int,
-    ):
-        self.pool = pool
-        self.embedder = embedder
+    def __init__(self, retriever: Retriever, llm: OllamaClient, top_k: int):
+        self.retriever = retriever
         self.llm = llm
-        self.chunk_config = chunk_config
         self.top_k = top_k
 
     async def answer(self, question: str, top_k: int | None = None) -> QueryResult:
@@ -35,11 +26,7 @@ class RAGService:
         timings = StageTimings()
 
         t0 = perf_counter()
-        query_vector = await anyio.to_thread.run_sync(self.embedder.encode_query, question)
-        timings.embed_ms = (perf_counter() - t0) * 1000
-
-        t0 = perf_counter()
-        chunks = await dense_search(self.pool, query_vector, self.chunk_config.config_hash, k)
+        chunks = await self.retriever.retrieve(question, k)
         timings.retrieve_ms = (perf_counter() - t0) * 1000
 
         if not chunks:

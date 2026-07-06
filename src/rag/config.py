@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     chunk_size_tokens: int = 400
     chunk_overlap_tokens: int = 60
     top_k: int = 5
+    retrieval_mode: str = "dense"  # dense | sparse | hybrid (Phase 4+)
     llm_num_ctx: int = 8192
 
     # CI has no Ollama: with require_llm=false the health probe skips the LLM

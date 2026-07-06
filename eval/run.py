@@ -73,7 +73,7 @@ def _percentile(values: list[float], p: float) -> float:
     if not values:
         return 0.0
     ordered = sorted(values)
-    idx = min(len(ordered) - 1, int(round((p / 100) * (len(ordered) - 1))))
+    idx = min(len(ordered) - 1, round((p / 100) * (len(ordered) - 1)))
     return ordered[idx]
 
 
@@ -124,7 +124,7 @@ async def run_eval(mode: str, label: str, provisional: bool) -> dict:
     pool = AsyncConnectionPool(settings.database_url, min_size=1, max_size=4, open=False)
     await pool.open()
     try:
-        retriever = build_retriever(mode, pool, embedder, settings, cfg_hash)
+        retriever = build_retriever(mode, pool, embedder, cfg_hash)
         results = [await _eval_question(retriever, m) for m in materialized if m.item.answerable]
     finally:
         await pool.close()
@@ -162,7 +162,8 @@ def _append_results_table(report: dict) -> None:
         "# Retrieval eval results\n\n"
         "Appended by `eval/run.py`. Each row = one retriever config on the frozen\n"
         "golden set. Deltas are read down the table (baseline is the anchor).\n\n"
-        "| label | mode | recall@5 | recall@10 | MRR | nDCG@10 | retrieve p50/p95 ms | n | provisional |\n"
+        "| label | mode | recall@5 | recall@10 | MRR | nDCG@10 "
+        "| retrieve p50/p95 ms | n | provisional |\n"
         "|---|---|---|---|---|---|---|---|---|\n"
     )
     if not table.exists():

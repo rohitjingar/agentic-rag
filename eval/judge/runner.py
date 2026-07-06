@@ -29,6 +29,7 @@ from rag.generation.client import OllamaClient
 from rag.generation.prompts import REFUSAL
 from rag.ingest.embedder import build_embedder
 from rag.query import RAGService
+from rag.retrieval.factory import build_retriever
 
 REFUSAL_MARK = "does not contain the answer"
 
@@ -105,7 +106,10 @@ async def run_generation_eval(label: str, limit: int | None, provisional: bool) 
     embedder = build_embedder(
         settings.embedding_backend, settings.embedding_model, settings.embedding_dim
     )
-    service = RAGService(pool, embedder, gen_llm, chunk_config, settings.top_k)
+    retriever = build_retriever(
+        settings.retrieval_mode, pool, embedder, chunk_config.config_hash
+    )
+    service = RAGService(retriever, gen_llm, settings.top_k)
     judge = Judge(judge_llm)
 
     # Two passes so Ollama loads each model once instead of swapping per question

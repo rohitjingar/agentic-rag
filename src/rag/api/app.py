@@ -17,6 +17,7 @@ from rag.generation.client import OllamaClient
 from rag.ingest.chunker import ChunkConfig
 from rag.ingest.embedder import Embedder, build_embedder
 from rag.query import RAGService
+from rag.retrieval.factory import build_retriever
 
 
 def chunk_config_from(settings: Settings) -> ChunkConfig:
@@ -53,12 +54,14 @@ def create_app(
         app.state.embedder = embedder or build_embedder(
             settings.embedding_backend, settings.embedding_model, settings.embedding_dim
         )
+        retriever = build_retriever(
+            settings.retrieval_mode,
+            pool,
+            app.state.embedder,
+            chunk_config_from(settings).config_hash,
+        )
         app.state.rag = RAGService(
-            pool=pool,
-            embedder=app.state.embedder,
-            llm=app.state.llm,
-            chunk_config=chunk_config_from(settings),
-            top_k=settings.top_k,
+            retriever=retriever, llm=app.state.llm, top_k=settings.top_k
         )
         try:
             yield
