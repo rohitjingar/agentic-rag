@@ -17,6 +17,14 @@ class Settings(BaseSettings):
 
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     embedding_dim: int = 384
+    # "sentence-transformers" (real) or "fake" (deterministic, for tests/CI)
+    embedding_backend: str = "sentence-transformers"
+
+    corpus_dir: str = "data/corpus"
+    chunk_size_tokens: int = 400
+    chunk_overlap_tokens: int = 60
+    top_k: int = 5
+    llm_num_ctx: int = 8192
 
     # CI has no Ollama: with require_llm=false the health probe skips the LLM
     # check instead of failing the whole service.

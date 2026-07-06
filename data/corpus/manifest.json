@@ -1,0 +1,29 @@
+{
+  "corpus_version": "68daa1e88c7a",
+  "fetched_at": "2026-07-06T07:17:52+00:00",
+  "file_count": 399,
+  "sources": {
+    "fastapi": {
+      "repo": "fastapi/fastapi",
+      "ref": "0.139.0",
+      "sha": "cecd96d9c6c318e0df1c40cedbc2e953381ddfd3",
+      "files": 147
+    },
+    "mcp": {
+      "repo": "modelcontextprotocol/modelcontextprotocol",
+      "ref": "main",
+      "sha": "60dc69e9a9723a7bab535ade6c5c5b9695d97dfc",
+      "files": 214
+    },
+    "pgvector": {
+      "repo": "pgvector/pgvector",
+      "ref": "master",
+      "sha": "fb1b8966ebb9254032b6d0e7a594fdcc86f8efcc",
+      "files": 1
+    },
+    "postgres": {
+      "base": "https://www.postgresql.org/docs/17/",
+      "pages": 36
+    }
+  }
+}

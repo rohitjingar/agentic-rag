@@ -42,4 +42,5 @@ def settings(migrated_database_url: str) -> Settings:
         database_url=migrated_database_url,
         redis_url=REDIS_URL,
         require_llm=False,
+        embedding_backend="fake",  # never download models inside tests
     )
