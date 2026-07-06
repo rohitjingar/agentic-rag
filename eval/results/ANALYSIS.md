@@ -156,3 +156,45 @@ them is wasteful; the confidence heuristic alone should gate the LLM spend. Cap
 Reranking is the load-bearing upgrade; the agentic loop adds a targeted
 vocab-mismatch gain on top. Hybrid's standalone contribution washes out once
 reranking is present.
+
+### Phase 7 — observability, cost, semantic cache
+
+**Semantic cache (Redis 8 vector search).** Warm 8 questions, replay 19
+(repeats + close paraphrases + novel):
+
+| workload slice | hit rate |
+|---|---|
+| exact repeat | **1.00** |
+| close paraphrase | 0.44 |
+| novel (must not hit) | **0.00** |
+| overall | 0.63 |
+
+Each hit skips retrieve + generate entirely: saves the generation cost
+(~$0.0006 shadow/query at Haiku-class rates) **and** the full retrieve+generate
+latency (rerank ~510 ms + generation seconds). The **0.00 false-hit rate on
+novel queries is the number that matters** — a semantic cache that serves a
+wrong answer to a different question is worse than no cache.
+
+Threshold tuned to **0.90** on measured probes, not guessed: bge-small scores
+close paraphrases ~0.90–0.92 but a genuinely different question ("HNSW index"
+vs "partial index") at 0.74, and heavy rewordings drop to 0.66–0.80. 0.90 is the
+precision-first line — it catches near-duplicates and rejects the 0.74 near-miss.
+That's why paraphrase hit-rate is only 0.44: the looser paraphrases fall below
+0.90 and correctly miss rather than risk a wrong answer.
+
+**Honest invalidation.** Cache entries are namespaced by
+`corpus_version : chunk_config_hash : retrieval_mode`, so re-ingesting or
+changing the pipeline can never serve a stale answer — those queries miss under
+the new namespace. Plus a TTL. Verified by `test_namespace_isolation`.
+
+**Quality invariance.** A hit returns the *exact stored answer + sources*, so
+the cache changes cost and latency, never answer content — no re-eval needed to
+know retrieval/generation quality is unaffected by definition.
+
+**Cost + tracing.** `shadow_usd` is on every `/query` response (LLM tokens
+priced at public rates; local compute shows as latency). OTel spans per stage
+(cache.get / retrieve / generate) carry token + cost attributes and export to
+Jaeger — verified a live trace with nested `rag.query → retrieve → generate`
+spans. Per-stage p95 (from the eval runs): retrieve ≈ 25 ms (dense) → 653 ms
+(rerank) → 8.2 s (agentic re-query); generation dominates end-to-end at
+seconds (local llama3.1).

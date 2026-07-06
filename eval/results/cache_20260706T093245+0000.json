@@ -1,0 +1,128 @@
+{
+  "timestamp": "2026-07-06T09:32:45+00:00",
+  "threshold": 0.9,
+  "workload_size": 19,
+  "overall_hit_rate": 0.0,
+  "paraphrase_hit_rate": 0.0,
+  "repeat_hit_rate": 0.0,
+  "novel_false_hit_rate": 0.0,
+  "hits": 0,
+  "mean_uncached_shadow_usd": 0.000575,
+  "shadow_usd_saved_per_hit": 0.000575,
+  "rows": [
+    {
+      "kind": "repeat",
+      "query": "What is the default value of hnsw.ef_search in pgvector?",
+      "cached": false,
+      "shadow_usd": 0.00048724999999999994
+    },
+    {
+      "kind": "paraphrase",
+      "query": "In pgvector, what's the default hnsw.ef_search value?",
+      "cached": false,
+      "shadow_usd": 0.00047975
+    },
+    {
+      "kind": "repeat",
+      "query": "How do I write tests for a FastAPI application?",
+      "cached": false,
+      "shadow_usd": 0.00046925
+    },
+    {
+      "kind": "paraphrase",
+      "query": "How to test a FastAPI app?",
+      "cached": false,
+      "shadow_usd": 0.00055475
+    },
+    {
+      "kind": "paraphrase",
+      "query": "What's the way to test FastAPI apps?",
+      "cached": false,
+      "shadow_usd": 0.00050775
+    },
+    {
+      "kind": "repeat",
+      "query": "Which index type does PostgreSQL create by default?",
+      "cached": false,
+      "shadow_usd": 0.0005124999999999999
+    },
+    {
+      "kind": "paraphrase",
+      "query": "What is Postgres' default index type?",
+      "cached": false,
+      "shadow_usd": 0.0005445
+    },
+    {
+      "kind": "repeat",
+      "query": "What two standard transport mechanisms does MCP define?",
+      "cached": false,
+      "shadow_usd": 0.0006315
+    },
+    {
+      "kind": "paraphrase",
+      "query": "Which transports does the Model Context Protocol define?",
+      "cached": false,
+      "shadow_usd": 0.000497
+    },
+    {
+      "kind": "repeat",
+      "query": "How do I reclaim disk space after deleting rows in PostgreSQL?",
+      "cached": false,
+      "shadow_usd": 0.0007412499999999999
+    },
+    {
+      "kind": "paraphrase",
+      "query": "How do I run VACUUM to free space in Postgres?",
+      "cached": false,
+      "shadow_usd": 0.0007285
+    },
+    {
+      "kind": "repeat",
+      "query": "How do I return a custom HTTP status code from a FastAPI path operation?",
+      "cached": false,
+      "shadow_usd": 0.00069575
+    },
+    {
+      "kind": "paraphrase",
+      "query": "How to set a specific status code on a FastAPI route?",
+      "cached": false,
+      "shadow_usd": 0.0005785
+    },
+    {
+      "kind": "repeat",
+      "query": "When should I pick HNSW over IVFFlat in pgvector?",
+      "cached": false,
+      "shadow_usd": 0.000526
+    },
+    {
+      "kind": "paraphrase",
+      "query": "pgvector: HNSW vs IVFFlat, which to choose?",
+      "cached": false,
+      "shadow_usd": 0.000552
+    },
+    {
+      "kind": "repeat",
+      "query": "How does an MCP client discover available tools?",
+      "cached": false,
+      "shadow_usd": 0.000641
+    },
+    {
+      "kind": "paraphrase",
+      "query": "Which MCP method lists a server's tools?",
+      "cached": false,
+      "shadow_usd": 0.000535
+    },
+    {
+      "kind": "novel",
+      "query": "How do I create a partial index in PostgreSQL?",
+      "cached": false,
+      "shadow_usd": 0.000698
+    },
+    {
+      "kind": "novel",
+      "query": "What is write-ahead logging for?",
+      "cached": false,
+      "shadow_usd": 0.00054225
+    }
+  ]
+}
