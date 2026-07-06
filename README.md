@@ -66,6 +66,12 @@ serving and evaluation run the identical retrieval code.
 | config | faithfulness | groundedness | relevance | refusal accuracy (negatives) |
 |---|---|---|---|---|
 | naive dense RAG | 4.65 | 4.59 | 4.13 | 1.00 |
+| rerank pipeline | 4.65 | 4.72 | **4.74** | 1.00 |
+
+Better retrieval drives answer **relevance** up +15% (4.13 → 4.74) — the right
+chunks reach the generator — while faithfulness stays high (the generator was
+already faithful to whatever context it got). This is the end-to-end payoff of
+the retrieval work, measured.
 
 ### Semantic cache (paraphrase workload)
 

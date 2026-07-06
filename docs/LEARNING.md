@@ -289,10 +289,17 @@ mechanical gate — the same shift as going from "please write tests" to
 | + rerank (cross-encoder) | 0.573 | 0.627 | 0.477 | 0.459 | 526 ms | **the win** (+39% recall@5) |
 | + agentic loop | 0.595 | 0.648 | 0.488 | 0.473 | 1516 ms | +12.5% on vocab-mismatch only |
 
-**Generation** (LLM-as-judge, 1–5): naive dense RAG → faithfulness 4.65,
-groundedness 4.59, relevance 4.13, refusal accuracy 1.00.
-_(Final rerank-pipeline generation numbers appended to
-`eval/results/GENERATION_RESULTS.md`.)_
+**Generation** (LLM-as-judge, 1–5):
+
+| pipeline | faithfulness | groundedness | relevance |
+|---|---|---|---|
+| naive dense RAG | 4.65 | 4.59 | 4.13 |
+| rerank pipeline | 4.65 | 4.72 | **4.74** |
+
+The headline: **relevance +15% (4.13 → 4.74)** from better retrieval alone —
+faithfulness was never the problem (llama grounds well), *relevance* was, because
+naive retrieval fed it the wrong context. Fix retrieval, relevance follows. Both
+refuse 100% of out-of-scope questions.
 
 **Cache:** overall hit-rate 0.63, exact-repeat 1.00, novel false-hit 0.00.
 

@@ -1,0 +1,556 @@
+{
+  "label": "rerank-final-gen",
+  "suite": "generation",
+  "provisional": true,
+  "timestamp": "2026-07-06T10:26:47+00:00",
+  "generation_model": "llama3.1:8b",
+  "judge_model": "qwen2.5:7b-instruct",
+  "judge_prompt_version": "v1",
+  "golden_hash": "493229b448d8",
+  "chunk_config_hash": "698505d5978c",
+  "metrics": {
+    "answerable": {
+      "n": 46,
+      "faithfulness": 4.652,
+      "groundedness": 4.717,
+      "relevance": 4.739
+    },
+    "negatives": {
+      "n": 7,
+      "refusal_accuracy": 1.0,
+      "faithfulness": 5.0
+    }
+  },
+  "per_question": [
+    {
+      "qid": "q001",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 3,
+      "relevance": 5,
+      "answer": "40 [S2]"
+    },
+    {
+      "qid": "q002",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q003",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To trade a slower index build for better recall when creating an HNSW index in pgvector, you can increase the value of `ef_construction` [S3]. A higher value provides better recall at the cost of index build time / insert speed.\n\n```sql\nCREATE INDEX ON items USING hnsw (embedding vector_l2_ops) WITH (m = 16, ef_construction = 128);\n```\n\nYou can also increase the number of parallel workers to speed up index creation [S5]. \n\n```sql\nSET max_parallel_maintenance_workers = 7; -- plus leader\n```"
+    },
+    {
+      "qid": "q004",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[<=>] - cosine distance [S3]"
+    },
+    {
+      "qid": "q005",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 4,
+      "relevance": 5,
+      "answer": "This happens because of how pgvector performs approximate nearest neighbor search. By default, pgvector uses an exact nearest neighbor search, which provides perfect recall but can be slow for large datasets.\n\nWhen you add an index to use approximate nearest neighbor search, it trades some recall for speed. This means that the results may not include all rows within the specified distance limit, especially if the limit is small.\n\nTo mitigate this issue, you can combine the approximate search with a secondary exact search on the full vectors, as shown in the example:\n\n```sql\nSELECT * FROM (\n    SELECT * FROM items ORDER BY subvector(embedding, 1, 3)::vector(3) <=> subvector('[1,2,3,4,5]'::vector, 1, 3) LIMIT 20\n) ORDER BY embedding <=> '[1,2,3,4,5]' LIMIT 5;\n```\n\nThis approach first returns a set of candidates using the approximate search, and then re-ranks them using an exact search on the full vectors.\n\n[Note: This answer is based solely on the provided documentation excerpts.]"
+    },
+    {
+      "qid": "q006",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To force pgvector to use exact nearest-neighbor search instead of the approximate index for one query, you can set `enable_indexscan` to off locally before running the query. [S5] \n\n```sql\nBEGIN;\nSET LOCAL enable_indexscan = off; \nSELECT ... \nCOMMIT;\n```\n\nThis will temporarily disable the use of indexes (including the approximate index) and force pgvector to perform an exact search for that one query."
+    },
+    {
+      "qid": "q016",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[B-tree indexes, which fit the most common situations] [S1]\n\nIn other words, by default, PostgreSQL creates B-tree indexes."
+    },
+    {
+      "qid": "q017",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S4] suggests running `VACUUM FULL` or using `CLUSTER` or one of the table-rewriting variants of `ALTER TABLE`. These commands rewrite an entire new copy of the table and build new indexes for it, but require an `ACCESS EXCLUSIVE` lock. Alternatively, if your table's contents are deleted on a periodic basis, you can consider using `TRUNCATE` instead of `DELETE` followed by `VACUUM`, although this violates strict MVCC semantics."
+    },
+    {
+      "qid": "q018",
+      "qtype": "multi-hop",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The practical difference between standard VACUUM and VACUUM FULL is that standard VACUUM removes dead row versions in tables and indexes and marks the space available for future reuse, but does not return the space to the operating system [S3]. In contrast, VACUUM FULL actively compacts tables by writing a complete new version of the table file with no dead space, minimizing the size of the table, but can take a long time and requires extra disk space for the new copy of the table until the operation completes.\n\nYou should avoid using VACUUM FULL unless necessary, as it is generally slower than standard VACUUM and can cause problems if the table will just grow again in the future [S2]. Moderately-frequent standard VACUUM runs are a better approach than infrequent VACUUM FULL runs for maintaining heavily-updated tables."
+    },
+    {
+      "qid": "q019",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 3,
+      "answer": "[The indexed documentation does not contain the answer to this question.]"
+    },
+    {
+      "qid": "q020",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To create an index that only covers a subset of rows in a PostgreSQL table, you can use the `WHERE` clause with the `CREATE INDEX` command. This will create a partial index.\n\nExample:\n```sql\nCREATE INDEX idx_partial ON mytable (column1, column2) WHERE condition;\n```\nReplace `mytable`, `column1`, `column2`, and `condition` with your actual table name, column names, and the conditional expression that defines the subset of rows you want to index.\n\nNote: The condition in the `WHERE` clause can refer only to columns of the underlying table, but it can use all columns, not just the ones being indexed. [S1]\n\nAlso, keep in mind that partial indexes are a specialized feature and should be used judiciously. They can be useful for avoiding indexing common values or enforcing uniqueness over a subset of a table. [S3]"
+    },
+    {
+      "qid": "q021",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[1] (S3) This function computes the *cover density* ranking for the given document vector and query, as described in Clarke, Cormack, and Tudhope's \"Relevance Ranking for One to Three Term Queries\" in the journal \"Information Processing and Management\", 1999. Cover density is similar to `ts_rank` ranking except that the proximity of matching lexemes to each other is taken into consideration.\n\n    This function requires lexeme positional information to perform its calculation. Therefore, it ignores any \u201cstripped\u201d lexemes in the `tsvector`. If there are no unstripped lexemes in the input, the result will be zero. (See [Section\u00a012.4.1](textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR \"12.4.1.\u00a0Manipulating Documents\") for more information about the `strip` function and positional information in `tsvector`s.)\n\nFor both these functions, the optional *`weights`* argument offers the ability to weigh word instances more or less heavily depending on how they are labeled. The weight arrays specify how heavily to weigh each category of word, in the order:\n\n```\n{D-weight, C-weight, B-weight, A-weight}\n```\n\nIf no *`weights`* are provided, then these defaults are used:\n\n```\n{0.1, 0.2, 0.4, 1.0}\n```\n\nTypically weights are used to mark words from special areas of the document\n\n[1] (S3) The optional *`normalization`* option that specifies whether and how a document's length should impact its rank. The integer option controls several behaviors, so it is a bit mask: you can specify one or more behaviors using `|` (for example, `2|4`). \n\n* 0 (the default) ignores the document length\n* 1 divides the rank by 1 + the logarithm of the document length\n* 2 divides the rank by the document length\n\nTherefore, normalization flag 2 makes ts_rank_cd divide the rank by the document length in PostgreSQL full-text search."
+    },
+    {
+      "qid": "q022",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q023",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 4,
+      "relevance": 5,
+      "answer": "To see what plan the PostgreSQL planner chose and why, use the `EXPLAIN` command followed by `ANALYZE`. This will display the actual execution plan chosen by the planner, along with an estimate of the cost of each step. [S2]\n\nExample:\n```\nEXPLAIN ANALYZE SELECT * FROM tenk1 WHERE unique1 < 100 AND unique2 > 9000 LIMIT 2;\n```\nThis will show you the actual plan chosen by the planner and help you understand why it chose a sequential scan instead of using your index. [S2]"
+    },
+    {
+      "qid": "q024",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "Read Committed [S1]."
+    },
+    {
+      "qid": "q025",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To speed up a bulk data load of many rows into PostgreSQL, you can consider the following options:\n\n1. Drop indexes and recreate them after loading data [S3].\n2. Temporarily drop foreign key constraints, load data, and re-create the constraints [S1][S2].\n3. Increase `maintenance_work_mem` configuration variable to speed up `CREATE INDEX` commands and `ALTER TABLE ADD FOREIGN KEY` commands [S2].\n4. Temporarily increase `max_wal_size` configuration variable to reduce the number of checkpoints during bulk data loads [S2].\n5. Disable WAL Archival and Streaming Replication, or take a new base backup after the load has completed [S3].\n\nAdditionally, using `COPY` is almost always faster than using `INSERT`, even if `PREPARE` is used and multiple insertions are batched into a single transaction [S3]."
+    },
+    {
+      "qid": "q026",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The primary purpose of the write-ahead log (WAL) in PostgreSQL is for crash-safety purposes, allowing the database to be restored to consistency by \"replaying\" the log entries made since the last checkpoint in case of a system crash. [S1]"
+    },
+    {
+      "qid": "q027",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 3,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q031",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To limit which HTTP origins can call your FastAPI app from a browser, you need to specify a list of allowed origins. You can declare this list as strings or use wildcards like `\"*\"`.\n\nHowever, using the wildcard will only allow certain types of communication, excluding everything that involves credentials: Cookies, Authorization headers like those used with Bearer Tokens, etc.\n\nIt's recommended to specify explicitly the allowed origins for everything to work correctly.\n\nYou can configure it in your FastAPI application using the `CORSMiddleware`. [S1]"
+    },
+    {
+      "qid": "q032",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S1] states that \"You can define background tasks to be run *after* returning a response.\" This is useful for operations that need to happen after a request, but that the client doesn't really have to be waiting for the operation to complete before receiving the response. \n\nTo achieve this in FastAPI, you would create a function to be run as the background task and then pass it to `BackgroundTasks` which will handle running it in the background.\n\nHere is an example from [S5]:\n```python\nfrom fastapi import BackgroundTasks\n\n@app.get(\"/items/{item_id}\")\ndef read_item(item_id: str, background_tasks: BackgroundTasks):\n    # ... perform some operation ...\n    background_tasks.add_task(process_data, item_id)\n```\nThis way, the `process_data` function will be run in the background after the response has already been sent to the client."
+    },
+    {
+      "qid": "q033",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 2,
+      "relevance": 5,
+      "answer": "[S1] explains that you can write shared code once and FastAPI takes care of calling it for your path operations. You don't need to create a special class or pass it somewhere to register it with FastAPI.\n\nYou can use the `Depends` function to share common logic like a database session across many FastAPI endpoints without repeating it. For example, you can define a dependency function that returns the database session and then use it in multiple path operations:\n\n```python\nfrom fastapi import Depends\n\ndef get_db():\n    # return the database session\n    pass\n\n@app.get(\"/items/\")\ndef read_items(db: Session = Depends(get_db)):\n    # use the database session to query items\n    pass\n```\n\nYou can also store the `Annotated` value in a variable and use it in multiple places, as explained in [S1]. This is called a \"type alias\" and is not specific to FastAPI."
+    },
+    {
+      "qid": "q034",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 2,
+      "relevance": 5,
+      "answer": "To write tests for a FastAPI application, first install `httpx` and create a virtual environment. Then, import `TestClient`, create an instance of it by passing your FastAPI application to it, and use the `TestClient` object like you would with `httpx`. Write simple `assert` statements using standard Python expressions.\n\n[S1]"
+    },
+    {
+      "qid": "q035",
+      "qtype": "multi-hop",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To replace a dependency with a fake while testing a FastAPI endpoint that also uses an async database session, you should use the `app.dependency_overrides` attribute. \n\nYou put as a key the original dependency (a function), and as the value, your dependency override (another function). Then **FastAPI** will call that override instead of the original dependency.\n\n```python\napp.dependency_overrides = {\n    original_dependency: fake_dependency\n}\n```\n\nThis way you can provide a different dependency that will be used only during tests, and will provide a value that can be used where the value of the original dependency was used. [S2][S3]"
+    },
+    {
+      "qid": "q036",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 4,
+      "relevance": 5,
+      "answer": "To return a specific non-200 HTTP status code from a FastAPI path operation, you can use the `Response` object directly and set its `status_code` attribute. \n\nFor example:\n\n```python\nfrom fastapi import Response\n\n@app.get(\"/items/{item_id}\")\ndef read_item(item_id: str):\n    if item_id == \"bar\":\n        return Response(status_code=404)\n```\n\nAlternatively, you can use the `HTTPException` class to raise an exception with a specific status code. \n\nFor example:\n\n```python\nfrom fastapi import HTTPException\n\n@app.get(\"/items/{item_id}\")\ndef read_item(item_id: str):\n    if item_id == \"bar\":\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n```\n\nYou can also use the `status_code` parameter in a path operation decorator to specify the status code for that specific route. \n\nFor example:\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/items/{item_id}\", status_code=404)\ndef read_item(item_id: str):\n    return {\"item\": \"Item not found\"}\n```\n\nNote that in all cases, you can use any valid HTTP status code between 100 and 599."
+    },
+    {
+      "qid": "q037",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S2] and [S3] explain that you can use Pydantic's `BaseSettings` class to read configuration from environment variables in a typed, validated way. \n\nYou create a subclass of `BaseSettings`, declare class attributes with type annotations and default values, and then create an instance of the class. Pydantic will read the environment variables in a case-insensitive way, convert and validate the data.\n\nFor example:\n\n```python\nfrom pydantic import BaseSettings\n\nclass Settings(BaseSettings):\n    items_per_user: int = 100\n\nsettings = Settings()\n```\n\nThis will read the `ITEMS_PER_USER` environment variable (case-insensitive) and assign it to the `items_per_user` attribute of the `settings` object. If no such environment variable is set, it will use the default value of `100`."
+    },
+    {
+      "qid": "q038",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The MCP specification defines two standard transport mechanisms for client-server communication:\n\n1. [stdio](#stdio), communication over standard in and standard out\n2. [Streamable HTTP](#streamable-http)\n\n[All three excerpts S1, S2, and S3]"
+    },
+    {
+      "qid": "q039",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S1] states that MCP uses JSON-RPC to encode messages. Additionally, [S3], [S4] also mention that JSON-RPC messages **MUST** be UTF-8 encoded.\n\nSo, the answer is: JSON-RPC with UTF-8 encoding."
+    },
+    {
+      "qid": "q040",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 4,
+      "relevance": 5,
+      "answer": "`tools/list` [S2]"
+    },
+    {
+      "qid": "q041",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q042",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The server sends a notification to clients with an empty `id` field and a specific method name, as shown in [S3]. The notification is sent when the list of available tools changes. \n\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"notifications/tools/list_changed\"\n}\n```\n\nThis follows JSON-RPC 2.0 notification semantics where no response is expected or sent, as mentioned in [S1]."
+    },
+    {
+      "qid": "q043",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 3,
+      "groundedness": 4,
+      "relevance": 5,
+      "answer": "The first request an MCP client sends when establishing a connection is an `InitializeRequest` [S3]. This request is sent to establish the connection and negotiate various pieces of information such as protocol version, server capabilities, and client capabilities. \n\nHowever, according to [S1], this proposal removes the initialization handshake and provides new mechanisms for clients and servers to exchange this information without a mandatory state-creating cycle.\n\nTherefore, in a stateless MCP interaction model, the first request an MCP client sends when establishing a connection is not explicitly stated in the provided excerpts."
+    },
+    {
+      "qid": "q044",
+      "qtype": "multi-hop",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[The indexed documentation does not contain the answer to this question.]"
+    },
+    {
+      "qid": "q048",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q049",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q050",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q051",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q052",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q053",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 3,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q054",
+      "qtype": "negative-control",
+      "answerable": false,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 1,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q060",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "You should choose HNSW over IVFFlat if you need better query performance (in terms of speed-recall tradeoff) [S2]. However, note that HNSW has slower build times and uses more memory than IVFFlat."
+    },
+    {
+      "qid": "q061",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[The indexed documentation does not contain the answer to this question.]"
+    },
+    {
+      "qid": "q062",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To build an index on a big PostgreSQL table without locking out writes for the whole build, you can use the `CONCURRENTLY` option of `CREATE INDEX`. This method performs two scans of the table and waits for all existing transactions that could potentially modify or use the index to terminate. [S1]\n\nThis approach requires more total work than a standard index build and takes significantly longer to complete, but it allows normal operations to continue while the index is built. [S2]"
+    },
+    {
+      "qid": "q063",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "GIN indexes are \u201cinverted indexes\u201d which are appropriate for data values that contain multiple component values, such as arrays. [S1]"
+    },
+    {
+      "qid": "q064",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "You should create the path operation functions that use it with `async def`, like in:\n\n```Python\n@app.get('/burgers')\nasync def read_burgers():\n    burgers = await get_burgers(2)\n    return burgers\n```\n\nThis way, FastAPI will know how to handle the asynchronous call and won't block the server. [S2]"
+    },
+    {
+      "qid": "q065",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S3] states that with just the Python type declaration, **FastAPI** will:\n\n* Read the body of the request as JSON.\n* Convert the corresponding types (if needed).\n* Validate the data.\n\nAdditionally, [S5] mentions that declaring a Python type on a FastAPI path parameter gives you data validation."
+    },
+    {
+      "qid": "q066",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "You can declare the shape of a JSON request body by using Pydantic models. For example:\n\n```python\nfrom pydantic import BaseModel\n\nclass Item(BaseModel):\n    name: str\n    description: str\n    price: float\n    tax: float\n```\n\nThen, in your FastAPI endpoint, you can declare the parameter as an instance of this model:\n\n```python\n@app.post(\"/items/\")\nasync def create_item(item: Item):\n    return item\n```\n\nThis will automatically validate and deserialize the JSON request body into an `Item` object. [S2]"
+    },
+    {
+      "qid": "q067",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[S3] (from fastapi/tutorial/response-model) states that you can use the `response_model_include` and `response_model_exclude` parameters as a quick shortcut to include or exclude certain attributes from the output. These parameters take a set of str with the name of the attributes to include (omitting the rest) or to exclude (including the rest)."
+    },
+    {
+      "qid": "q068",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "OAuth2 [S1][S3]"
+    },
+    {
+      "qid": "q069",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "The indexed documentation does not contain the answer to this question."
+    },
+    {
+      "qid": "q070",
+      "qtype": "multi-hop",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "[Prompts] are designed to be **user-controlled**, meaning they are exposed from servers to clients with the intention of the user being able to explicitly select them for use. [S1]\n\nIn other words, Prompts are the primitive that is user-controlled and exposed as reusable templates a user picks, rather than something the model calls autonomously."
+    },
+    {
+      "qid": "q071",
+      "qtype": "how-to",
+      "answerable": true,
+      "refused": true,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "To retrieve available prompts, clients send a `prompts/list` request. This operation supports [pagination](/specification/2025-06-18/server/utilities/pagination).\n\n**Request:**\n\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"prompts/list\",\n  \"params\"\n}\n```\n\n[The indexed documentation does not contain the answer to this question.]"
+    },
+    {
+      "qid": "q072",
+      "qtype": "factoid",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "Capability negotiation and protocol version agreement [S1]."
+    },
+    {
+      "qid": "q073",
+      "qtype": "vocab-mismatch",
+      "answerable": true,
+      "refused": false,
+      "faithfulness": 5,
+      "groundedness": 5,
+      "relevance": 5,
+      "answer": "Because we know that in the event of a crash we will be able to recover the database using the log: any changes that have not been applied to the data pages can be redone from the WAL records. [S1]"
+    }
+  ]
+}
